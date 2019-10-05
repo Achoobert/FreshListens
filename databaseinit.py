@@ -3,18 +3,38 @@ import sqlite3
 conn = sqlite3.connect('library.db')
 c = conn.cursor()
 
-# Create table
-#IF NOT EXISTS 
-c.execute('''CREATE TABLE stocks IF NOT EXISTS
-             (date text, trans text, symbol text, qty real, price real)''')
+# Create users table
+c.execute('''CREATE TABLE users IF NOT EXISTS(
+			user_id INTEGER PRIMARY KEY, 
+			name text, 
+			location text 
+			)''')
 # Insert a row of data
-c.execute("INSERT INTO stocks VALUES ('2006-01-05','BUY','RHAT',100,35.14)")
+#user name, village LOCATION name
+c.execute("INSERT INTO users VALUES ('John Smith','Village 1')")
 
-# Create table
-c.execute('''CREATE TABLE users IF NOT EXISTS
-             (name text, trans text, symbol text, qty real, price real)''')
+# Create library table
+#IF NOT EXISTS 
+c.execute('''CREATE TABLE library IF NOT EXISTS (
+			track_id INTEGER PRIMARY KEY,
+			name text, 
+			location text, 
+			type text, 
+			size real 
+			)''')
 # Insert a row of data
-c.execute("INSERT INTO users VALUES ('2006-01-05','BUY','RHAT',100,35.14)")
+# NAME, file LOCATION on disk, get TYPE from parent dir name, how to get SIZE in mb?
+c.execute("INSERT INTO library VALUES ('song 1','D:\Audioก\songs\song 1.mp3','songs',38)")
+
+# Create history table
+#IF NOT EXISTS 
+c.execute('''CREATE TABLE history IF NOT EXISTS(
+			history_id  INTEGER PRIMARY KEY, 
+			date text,
+			FOREIGN KEY (user_id) REFERENCES users (user_id), 
+			FOREIGN KEY (track_id) REFERENCES library (track_id))''')
+# Insert a row of data
+c.execute("INSERT INTO history VALUES ('2006-01-05', 2, 8)") #current date, user, track
 
 # Save (commit) the changes
 conn.commit()
