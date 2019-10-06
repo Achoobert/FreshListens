@@ -1,5 +1,6 @@
 # coding: utf_8
-# allow file manage
+# file management
+from datetime import date
 from pathlib import Path
 import os
 import sys
@@ -7,9 +8,6 @@ import sys
 import sqlite3
 conn = sqlite3.connect('library.db')
 c = conn.cursor()
-
-# library
-# , UNIQUE(name, location)
 
 
 def checkDatabase():
@@ -38,9 +36,8 @@ def libraryDatabaseInit():
     for f in files:
         print(f)
         c.execute(
-            #track_id, name, location, type, size
+            # track_id, name, location, type, size
             "INSERT OR IGNORE INTO library VALUES (null,'{0}','{1}','{2}',{3})".format(*f))
-    # NAME, LOCATION, TYPE, Album , SIZE OR IGNORE
     conn.commit()
 
 
@@ -50,7 +47,16 @@ checkDatabase()
 c.execute("INSERT OR IGNORE INTO users VALUES (NULL,'Johnny Smithson','Village 1')")
 conn.commit()
 
+# check library location for new files
 libraryDatabaseInit()
+
+
+today = date.today()
+# add date sent to user
+# history_id, date , user_id , track_id ,
+c.execute("INSERT INTO history VALUES (null,'" +
+          today.strftime("%d/%m/%Y")+"','1','1')")
+conn.commit()
 
 
 conn.close()
