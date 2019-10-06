@@ -43,20 +43,55 @@ def libraryDatabaseInit():
 
 checkDatabase()
 
-# user name, village LOCATION name
-c.execute("INSERT OR IGNORE INTO users VALUES (NULL,'Johnny Smithson','Village 1')")
-conn.commit()
-
 # check library location for new files
 libraryDatabaseInit()
 
+# send files
 
-today = date.today()
-# add date sent to user
-# history_id, date , user_id , track_id ,
-c.execute("INSERT INTO history VALUES (null,'" +
-          today.strftime("%d/%m/%Y")+"','1','1')")
-conn.commit()
 
+def sendFiles(toSend):
+    # toSend, list of requested files
+
+    # Save sent file to history table
+
+
+def logFileReceived(user, file):
+    today = date.today()
+    # add date sent to user
+    # history_id, date , user_id , track_id ,
+    c.execute("INSERT INTO history VALUES (null,'" +
+              today.strftime("%d/%m/%Y")+"','1','1')")
+    conn.commit()
+
+
+# command line testing
+# two choices: send files, review all sent tracks
+def testSendFiles():
+    print("1. input user ")
+    name = input("Enter Listener's Name")
+    location = input("Enter location")
+    # user name, village LOCATION name
+    c.execute("INSERT OR IGNORE INTO users VALUES (NULL, %(name)s, %(location)s)" %)
+    conn.commit()
+
+    print("2. send files to a Drive")
+    drive = input("Drive Letter")
+    # 'D' + ":/"
+    # send ALL files
+
+    print("Success")
+
+
+def reviewSentTracks():
+    # just print the whole sql
+    print('todo')
+
+
+choice = input("enter '1' to send tracks\nenter '2' to print history\n")
+
+if choice == '1':
+    testSendFiles()
+else:
+    reviewSentTracks()
 
 conn.close()
