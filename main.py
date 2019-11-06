@@ -10,7 +10,7 @@ conn = sqlite3.connect('library.db')
 c = conn.cursor()
 
 
-def checkDatabase():
+def checkDatabase():  # Create database IF NOT EXISTS
     c.execute(
         '''CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, name text, location text )''')
     c.execute('''CREATE TABLE IF NOT EXISTS library (track_id INTEGER PRIMARY KEY,name text, location text, type text, size real, UNIQUE(name, location))''')
@@ -18,10 +18,10 @@ def checkDatabase():
     conn.commit()
 
 
-def libraryDatabaseInit():
-    # TODO Make this blank by default, have way for user to set
+def libraryDatabaseInit():  # check whole library location for new files (IF NOT EXISTS)
+    # TODO user add ifnull/edit option library location on startup
     library_path = str("D:\OneDrive\Documents\Work\Library Manager\Audioก")
-
+    #print("checking Database")
     files = []
     # r=root, d=directories, f = files
     for r, d, f in os.walk(library_path):
@@ -42,6 +42,7 @@ def libraryDatabaseInit():
 
 
 checkDatabase()
+    # TODO access database using userID
 
 # check library location for new files
 libraryDatabaseInit()
@@ -64,20 +65,16 @@ def logFileReceived(user, file):
     conn.commit()
 
 
-# command line testing
-# two choices: send files, review all sent tracks
-def testSendFiles():
-    print("1. input user ")
-    name = input("Enter Listener's Name")
-    location = input("Enter location")
-    # user name, village LOCATION name
-    c.execute("INSERT OR IGNORE INTO users VALUES (NULL, %(name)s, %(location)s)" %)
-    conn.commit()
+# send
+# current filesystem loc, int, Drive tosendto
+def send(location, order, drive):
 
     print("2. send files to a Drive")
     drive = input("Drive Letter")
     # 'D' + ":/"
-    # send ALL files
+    # send file
+
+    # 001, 012, 123 need force proper sorting
 
     print("Success")
 
@@ -87,11 +84,26 @@ def reviewSentTracks():
     print('todo')
 
 
-choice = input("enter '1' to send tracks\nenter '2' to print history\n")
+# Create database IF NOT EXISTS
+checkDatabase()
+
+# check whole library location for new files (IF NOT EXISTS)
+libraryDatabaseInit()
+
+
+############ TEMP UI ##################
+#   all users w/ ids
+# a. select 'user' from list all users
+#   dispence history
+# b. option: back, send new
+#   list all tracks
+# c. enter IDs for songs desired to send, in order you want them to play
 
 if choice == '1':
     testSendFiles()
 else:
+        # send to next ui step
     reviewSentTracks()
+############# TEMP UI END #############
 
 conn.close()
