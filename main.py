@@ -8,6 +8,8 @@ import sys
 import sqlite3
 conn = sqlite3.connect('library.db')
 c = conn.cursor()
+# File manage
+import shutil
 
 
 def checkDatabase():  # Create database IF NOT EXISTS
@@ -60,38 +62,44 @@ def getFileSizeTotal(sendTracks):
 
 
 def sendFiles(sendTracks, user_id, drive):  # toSend, list of requested files
-    for i in sendTracks:
+    for i, trackID in enumerate(sendTracks):
         c.execute(
-            "SELECT location FROM library WHERE track_id=?", (i,))  # note: needs to be sequence
-        print("found: ", c.fetchone())
-        # send file
-        send(location, order, drive)
+            "SELECT location FROM library WHERE track_id=?", (trackID,))  # note: needs to be sequence
+        # send file (index === order of play)
+        send(c.fetchone()[0], i, drive)
         # Save sent file to history table
-
+        logFileReceived(user_id, trackID)
         #
 
 
-def logFileReceived(user, file):
-
+def logFileReceived(userID, fileID):
     today = date.today()
     # add date sent to user
     # history_id, date , user_id , track_id ,
     c.execute("INSERT INTO history VALUES (null,'" +
-              today.strftime("%d/%m/%Y")+"','1','1')")
+              today.strftime("%d/%m/%Y")+"', ? , ?)", (userID, fileID))
     conn.commit()
 
 
 # send
 # current filesystem loc, int, Drive tosendto
-def send(location, order, drive):
+def send(srcLocation, order, drive):
+    print("sending file...", srcLocation, " ", order , " ", drive)
+    #srcLocation = 'D:\\OneDrive\\Documents\\Work\\Library Manager\\Audioก\\teachings\\teaching 4.mp3'
+    # 001, 012, 123... force proper sorting
+    if (order > 9):
+        placeSTR = ("0"+str(order))
+    elif (order > 99):
+        placeSTR = str(order)
+    else:
+        placeSTR = ("00"+str(order))
+    
+    # c:\\001teaching 4.mp3
+    dst = os.path.join(drive + ':\\' + placeSTR + '_teaching 4.mp3')
+    print (dst)
+    # C:\\teaching 4.mp3
 
-    print("2. send files to a Drive")
-    drive = input("Drive Letter")
-    # 'D' + ":/"
-    # send file
-
-    # 001, 012, 123 need force proper sorting
-
+    shutil.copy(srcLocation, dst)
     print("Success")
 
 
