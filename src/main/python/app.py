@@ -1,5 +1,6 @@
 # coding: utf_8
 # file management
+import shutil
 from datetime import date
 from pathlib import Path
 import os
@@ -9,7 +10,7 @@ import sqlite3
 conn = sqlite3.connect('library.db')
 c = conn.cursor()
 # File manage
-import shutil
+# UI
 
 
 def checkDatabase():  # Create database IF NOT EXISTS
@@ -84,7 +85,7 @@ def logFileReceived(userID, fileID):
 # send
 # current filesystem loc, int, Drive tosendto
 def send(srcLocation, order, drive):
-    print("sending file...", srcLocation, " ", order , " ", drive)
+    print("sending file...", srcLocation, " ", order, " ", drive)
     #srcLocation = 'D:\\OneDrive\\Documents\\Work\\Library Manager\\Audioก\\teachings\\teaching 4.mp3'
     # 001, 012, 123... force proper sorting
     if (order > 9):
@@ -93,10 +94,10 @@ def send(srcLocation, order, drive):
         placeSTR = str(order)
     else:
         placeSTR = ("00"+str(order))
-    
+
     # c:\\001teaching 4.mp3
     dst = os.path.join(drive + ':\\' + placeSTR + '_teaching 4.mp3')
-    print (dst)
+    print(dst)
     # C:\\teaching 4.mp3
 
     shutil.copy(srcLocation, dst)
@@ -137,6 +138,15 @@ def displayUsers():
     for row in c.execute('SELECT * FROM users ORDER BY user_id'):
         print(row[0], row[1])
     uiPickUser()
+
+
+def getUsers():
+    arr = []
+    for row in c.execute('SELECT * FROM users ORDER BY user_id'):
+        print(row[0], row[1])
+        arr.append([row[0], row[1]])
+    c.execute('SELECT * FROM users ORDER BY user_id')
+    return c.fetchone()
 
 
 def displayLibrary():
@@ -186,7 +196,5 @@ def uiPickTracks(userID):
         sendFiles(trackList, userID, drive)
 
 
-displayUsers()
+# displayUsers()
 ############# TEMP UI END #############
-
-conn.close()
