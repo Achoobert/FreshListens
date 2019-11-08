@@ -6,22 +6,18 @@ from app import *
 import sys
 
 if __name__ == '__main__':
+    libArr = getLibrary()
+    userArr = getUsers()
     appctxt = ApplicationContext()       # 1. Instantiate ApplicationContext
    # window = QMainWindow()
    # window.resize(250, 150)
    # window.show()
 
-    #label = QLabel('Hello World!')
-    # label.show()
-
     #app = QApplication([])
-    window = QWidget()
-    userLayout = QVBoxLayout()
-
-
-    
+        
     ##### user layout #####
-    userArr = getUsers()
+    userWindow = QWidget()
+    userLayout = QVBoxLayout()
     # establish height of table
     userTable = QTableWidget(len(userArr), 4)
     # headers
@@ -35,37 +31,59 @@ if __name__ == '__main__':
     # add table to layout
     userLayout.addWidget(userTable)
 
-    userLayout.addWidget(QPushButton('Library'))
+    lib_button = QPushButton('Library')
+    def on_goLib_clicked():
+        libraryWindow.show()
+    lib_button.clicked.connect(on_goLib_clicked)
+    userLayout.addWidget(lib_button)
+
+
     userLayout.addWidget(QPushButton('Add User'))
-    window.setLayout(userLayout)
-    window.resize(500, 250)
-    window.show()
+    userWindow.setLayout(userLayout)
+    userWindow.resize(500, 250)
+    userWindow.show()
     ##### END user Layout #####
 
     ##### Library Layout #####
     libraryWindow = QWidget()
     libraryLayout = QVBoxLayout()
-    libArr = getLibrary()
+
     # establish height of table
     libTable = QTableWidget(len(libArr), 4)
     # headers
-    libTable.setHorizontalHeaderLabels(['ID', 'Name', 'Place','❌'])
+    libTable.setHorizontalHeaderLabels(['ID', 'Name', 'Size','❌'])
     # put users into table
     for i, track in enumerate(libArr):
-        libTable.setItem(i, 0, QTableWidgetItem(str(track[0]))) #id
-        libTable.setItem(i, 1, QTableWidgetItem(track[1])) #name 
-        libTable.setItem(i, 2, QTableWidgetItem(track[2])) #loc
+        libTable.setItem(i, 0, QTableWidgetItem(str(track[0]))) # id
+        libTable.setItem(i, 1, QTableWidgetItem(track[1])) # name 
+        libTable.setItem(i, 2, QTableWidgetItem((str(int(track[4]*1e-6))+ " MB"))) # size to MB
         libTable.setItem(i, 3, QTableWidgetItem('❌'))
     # add table to layout
     libraryLayout.addWidget(libTable)
 
-    libraryLayout.addWidget(QPushButton('Back to Users'))
+    user_button = QPushButton('Back to Users')
+    def on_goUserList_clicked():
+        userWindow.show()
+    user_button.clicked.connect(on_goUserList_clicked)
+    libraryLayout.addWidget(user_button)
+
     libraryLayout.addWidget(QPushButton('Refresh Tracks'))
     libraryWindow.setLayout(libraryLayout)
     libraryWindow.resize(500, 250)
     libraryWindow.show()
     ##### END Library #####
 
+    ####################################
+    app = QApplication([])
+    button = QPushButton('Click')
+    def on_button_clicked():
+        alert = QMessageBox()
+        alert.setText('You clicked the button!')
+        alert.exec_()
+
+    button.clicked.connect(on_button_clicked)
+    button.show()
+    ##################################
 
 
     # app.exec_() #can't use while testing in powershell

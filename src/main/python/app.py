@@ -143,7 +143,7 @@ def displayUsers():
 def getUsers():
     arr = []
     for row in c.execute('SELECT * FROM users ORDER BY user_id'):
-        print([row[0], row[1], row[2]])
+        #print([row[0], row[1], row[2]])
         arr.append([row[0], row[1], row[2]])
     #c.execute('SELECT * FROM users ORDER BY user_id')
     return arr
@@ -151,8 +151,8 @@ def getUsers():
 def getLibrary():
     arr = []
     for row in c.execute('SELECT * FROM library ORDER BY track_id'):
-        print([row[0], row[1], row[2]])
-        arr.append([row[0], row[1], row[2]])
+        #print([row[0], row[1], 'location', row[3], row[4]])
+        arr.append([row[0], row[1], row[2], row[3], row[4]])
     #c.execute('SELECT * FROM users ORDER BY user_id')
     return arr
 
