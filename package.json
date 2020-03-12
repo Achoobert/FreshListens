@@ -1,0 +1,29 @@
+{
+  "name": "freshlistens",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron-rebuild": "^1.10.1",
+    "zerorpc": "git+https://github.com/0rpc/zerorpc-node.git"
+  },
+  "devDependencies": {
+    "electron": "^1.8.8",
+    "electron-packager": "^12.1.0"
+  },
+  "description": "Allow a single PC to admin files for different listeners",
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "freshlistens"
+  },
+  "keywords": [
+    "DigiServe",
+    "Audio",
+    "Library"
+  ],
+  "author": "Isaac Schubert",
+  "license": "OSL"
+}
