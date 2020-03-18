@@ -1,24 +1,44 @@
 <!-- index.html -->
+<!--
+#   all users w/ ids
+# a. select 'user' from list all users
+#   dispence history
+# b. option: back, send new
+#   list all tracks
+# c. enter IDs for songs desired to send, in order you want them to play 
+# d.
+-->
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
-    <title>Hello Calculator!</title>
+    <meta charset="UTF-8" />
+    <title>Fresh Listens</title>
   </head>
   <body>
-    <h1>Hello Calculator!</h1>
-    <p>Input something like <code>1 + 1</code>.</p>
-    <p>This calculator supports <code>+-*/^()</code>,
-    whitespaces, and integers and floating numbers.</p>
-    <input id="formula" value="1 + 2.0 * 3.1 / (4 ^ 5.6)"></input>
+    <h1 id="header">Pick a User!</h1>
+    <!--
+      How to format js insert as a table??????
+    -->
+    <div id="helloWorld"></div>
     <div id="result"></div>
-    <h1>App Testing!</h1>
-    <p>Is app working?</p>
-    <div id="helloworld"></div>
+    <button id="load">Force Load!</button>
+    <form id="newUser">
+      <label for="userName">Name:</label><br />
+      <input type="text" id="userName" name="userName" value="name" /><br />
+      <label for="lname">Location:</label><br />
+      <input
+        type="text"
+        id="location"
+        name="location"
+        value="location"
+      /><br /><br />
+      <input id="submitUser" type="button" value="Submit" />
+    </form>
+
     <div id="library"></div>
     <div id="users"></div>
   </body>
   <script>
-    require('./renderer.js')
+    require("./renderer.js");
   </script>
 </html>

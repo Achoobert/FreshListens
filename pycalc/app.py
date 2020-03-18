@@ -104,16 +104,23 @@ def send(srcLocation, order, drive):
     print("Success")
 
 
-def addUser():
-    name = input("Enter Listener's Name")
-    location = input("Enter location")
+def addUser(userData):
+    name = userData[0]
+    location = userData[1]
     # user name, village LOCATION name
     c.execute("INSERT OR IGNORE INTO users VALUES (?, ?s, ?s)",
               "", name, location)
     conn.commit()
 
+def getHistory(userID):
+    # TODO show user's track history
+    print("todo")
 
-def reviewSentTracks():
+def getDrives():
+    #TODO, return array? of available external drives/devices
+    print("todo")
+
+def reviewSentTracks(userID):
     # just print the whole sql
     print('todo')
 
@@ -184,7 +191,7 @@ def uiPickUser():
         uiPickTracks(searchUser)
 
 
-def uiPickTracks(userID):
+def sendTracks(userID):
     displayLibrary()
     choice = input(
         "enter enter IDs for tracks, in the order you want them to play\nOr 'back' to go back to the ̶f̶u̶t̶u̶r̶e̶  user list\n")

@@ -3,6 +3,9 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 const path = require("path");
 
+//  to run this in test mode
+// './node_modules/.bin/electron .'
+
 let mainWindow = null;
 const createWindow = () => {
   mainWindow = new BrowserWindow({ width: 800, height: 600 });
