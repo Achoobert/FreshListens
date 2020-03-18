@@ -49,7 +49,7 @@ class Api(object):
     def newUser(self,userData):
         """based on the input text, return the int result"""
         try:
-            return submitUser(userData)
+            return (userData)
         except Exception as e:
             return "error not inserted"
     def echo(self, text):

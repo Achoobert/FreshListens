@@ -13,21 +13,21 @@ let submitUser = document.querySelector("#submitUser");
 let result = document.querySelector("#result");
 let newUser = document.querySelector("#newUser");
 let library = document.querySelector("#library");
-let helloWorld = document.querySelector("#helloWorld");
 let users = document.querySelector("#users");
 
 load.addEventListener("click", () => {
+  // TODO clear the divs before displaying
   getLibrary();
   getUsers();
 });
 load.dispatchEvent(new Event("click"));
 //
-submitUser.addEventListener("button", () => {
+submitUser.addEventListener("click", () => {
   console.log("clicked");
-  let data = [1, 2];
-  addUser(data);
+  console.log(newUser.location.value, newUser.userName.value);
+  addUser([newUser.userName.value, newUser.location.value]);
 });
-submitUser.dispatchEvent(new Event("click"));
+//submitUser.dispatchEvent(new Event("click"));
 
 //display, select-> display-display, select multiple->execute,
 function getUsers() {
@@ -36,25 +36,28 @@ function getUsers() {
       console.error(error);
     } else {
       console.log(res);
+      clearEle(users);
       users.appendChild(createTable(res));
     }
   });
 }
 function addUser(data) {
   console.log(data);
-  /*client.invoke("newUser", newUser.value, (error, res) => {
+  client.invoke("newUser", newUser.value, (error, res) => {
     if (error) {
       console.error(error);
     } else {
+      console.log(res);
       result.textContent = res;
     }
-  });*/
+  });
 }
 function getLibrary() {
   client.invoke("getLibrary", (error, res) => {
     if (error) {
       console.error(error);
     } else {
+      clearEle(library);
       library.appendChild(createTable(res));
     }
   });
@@ -77,14 +80,18 @@ function createTable(tableData) {
   tableData.forEach(function(rowData) {
     var row = document.createElement("tr");
     rowData.forEach(function(cellData) {
-      var cell = document.createElement("td");
-      cell.appendChild(document.createTextNode(cellData));
-      // Click listener for row
-      cell.addEventListener("click", function() {
-        // alert data ID
-        alert(rowData[0]);
-      });
-      row.appendChild(cell);
+      // This may cause bug later
+      // filtering out extra location via length. very dumb
+      if (cellData != rowData[0] && cellData.length < 60) {
+        var cell = document.createElement("td");
+        cell.appendChild(document.createTextNode(cellData));
+        // Click listener for row
+        cell.addEventListener("click", function() {
+          // alert data ID
+          alert(rowData[0]);
+        });
+        row.appendChild(cell);
+      }
     });
 
     tableBody.appendChild(row);
@@ -92,4 +99,7 @@ function createTable(tableData) {
 
   table.appendChild(tableBody);
   return table;
+}
+function clearEle(elementID) {
+  elementID.innerHTML = "";
 }
