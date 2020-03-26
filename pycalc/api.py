@@ -16,6 +16,9 @@ class Api(object):
     #   List library    
     #   Take track ids, os send to drive(store)
     #   Disconnect drive
+    def echo(self, text):
+        """echo any text"""
+        return text
     def getUsers(self):
         """based on the input text, return the int result"""
         try:
@@ -27,7 +30,7 @@ class Api(object):
         try:
             return getHistory(userID)
         except Exception as e:
-            return 0.0
+            return ("history not working")
     def getDrives(self):
         """based on the input text, return the int result"""
         try:
@@ -52,12 +55,13 @@ class Api(object):
             return (userData)
         except Exception as e:
             return "error not inserted"
-    def echo(self, text):
-        """echo any text"""
-        return text
-    def helloWorld(self):
-        """echo any text"""
-        return ("text+text2")
+    def testInsert(self, user, track):
+        """log File Received"""
+        # userID, fileID
+        try:
+            return logFileReceived(user, track)
+        except:
+            return ("not working")
 
 def parse_port():
     return 4242

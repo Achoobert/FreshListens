@@ -14,29 +14,43 @@
     <meta charset="UTF-8" />
     <title>Fresh Listens</title>
   </head>
-  <body>
-    <h1 id="header">Pick a User!</h1>
+  <body id="body">
+    <div id="echoDiv"></div>
+    <button id="echoButton">echo</button><br />
+    <button id="load">Reset All</button>
+    <button id="loadUser">Force Insert</button>
+    <h1 id="header">ss</h1>
+    <div id="usersView">
+      <form id="newUser">
+        <label for="userName">Name:</label><br />
+        <input type="text" id="userName" name="userName" value="name" /><br />
+        <label for="lname">Location:</label><br />
+        <input
+          type="text"
+          id="location"
+          name="location"
+          value="location"
+        /><br /><br />
+        <input id="submitUser" type="button" value="Submit" />
+      </form>
+
+      <div id="users"></div>
+    </div>
+
     <!--
       How to format js insert as a table??????
     -->
-    <div id="helloWorld"></div>
-    <div id="result"></div>
-    <button id="load">Force Load!</button>
-    <form id="newUser">
-      <label for="userName">Name:</label><br />
-      <input type="text" id="userName" name="userName" value="name" /><br />
-      <label for="lname">Location:</label><br />
-      <input
-        type="text"
-        id="location"
-        name="location"
-        value="location"
-      /><br /><br />
-      <input id="submitUser" type="button" value="Submit" />
-    </form>
+    <div id="userView">
+      <p>user data</p>
+      <div id="userHistory"></div>
+    </div>
 
-    <div id="users"></div>
-    <div id="library"></div>
+    <!--
+      Library View
+    -->
+    <div id="libraryView">
+      <div id="library"></div>
+    </div>
   </body>
   <script>
     require("./renderer.js");

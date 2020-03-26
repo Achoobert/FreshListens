@@ -14,9 +14,61 @@ let result = document.querySelector("#result");
 let newUser = document.querySelector("#newUser");
 let library = document.querySelector("#library");
 let users = document.querySelector("#users");
+let header = document.querySelector("#header");
+let userHistory = document.querySelector("#userHistory");
+
+// Global selecting variables
+var currentUser = 0;
+var currentHistory = [];
+var currentTracks = [];
+
+///// debugging stuff, delete later
+let echoDiv = document.querySelector("#echoDiv");
+let echoButton = document.querySelector("#echoButton");
+echoButton.addEventListener("click", () => {
+  console.log("click");
+  clearEle(echoDiv);
+  echoDiv.textContent = "renderer works";
+  client.invoke("echo", "api.py working", (error, res) => {
+    if (error) {
+      console.error(error);
+      echoDiv.textContent = "api.py busted";
+    } else {
+      //clearEle(users);
+      console.log(res);
+      echoDiv.textContent = res;
+    }
+  });
+});
+echoButton.dispatchEvent(new Event("click"));
+
+/////
+
+// Make a single page app
+let body = document.querySelector("#body");
+let usersView = document.querySelector("#usersView");
+let userView = document.querySelector("#userView");
+let libraryView = document.querySelector("#libraryView");
+let loadUser = document.querySelector("#loadUser");
+loadUser.addEventListener("click", () => {
+  // Clear
+  client.invoke("testInsert", 1, 4, (error, res) => {
+    if (error) {
+      console.error(error);
+    } else {
+      //clearEle(users);
+      console.log(res);
+    }
+  });
+  usersView.style.display = "none";
+});
+//loadUser.dispatchEvent(new Event("click"));
 
 load.addEventListener("click", () => {
   // TODO clear the divs before displaying
+  usersView.style.display = "block";
+  userView.style.display = "none";
+  libraryView.style.display = "none";
   getLibrary();
   getUsers();
 });
@@ -35,9 +87,8 @@ function getUsers() {
     if (error) {
       console.error(error);
     } else {
-      console.log(res);
       clearEle(users);
-      users.appendChild(createTable(res));
+      users.appendChild(createUserTable(res));
     }
   });
 }
@@ -48,9 +99,19 @@ function addUser(data) {
       console.error(error);
     } else {
       console.log(res);
-      result.textContent = res;
+      // update the user list
+      getUsers();
+      console.log(res);
     }
   });
+}
+function showUser(userData) {
+  // update view
+  usersView.style.display = "none";
+  userView.style.display = "block";
+  header.textContent = userData[1];
+  // get user's history
+  displayHistory(userData[0]);
 }
 function getLibrary() {
   client.invoke("getLibrary", (error, res) => {
@@ -63,7 +124,23 @@ function getLibrary() {
   });
 }
 
-function displayHistory() {}
+function displayHistory(userId) {
+  client.invoke("getHistory", userId, (error, res) => {
+    if (error) {
+      console.error(error);
+    } else {
+      clearEle(userHistory);
+      if (res == null) {
+        userHistory.textContent = "null return";
+      } else {
+        console.log(res);
+        currentHistory = res;
+        //userHistory.textContent = res;
+        userHistory.appendChild(createHistoryTable(res));
+      }
+    }
+  });
+}
 function moveSelected() {}
 function unMountDrive() {}
 
@@ -73,25 +150,80 @@ function unMountDrive() {}
   users.appendChild(createTable(res));
   TODO have event listener be a passed variable?
 */
-function createTable(tableData) {
+function createTable(tableData, onClickFunc) {
+  var table = document.createElement("table");
+  var tableBody = document.createElement("tbody");
+  if (onClickFunc == undefined) {
+    onClickFunc = function(rowData) {
+      // alert data ID
+      alert(rowData[0]);
+    };
+  }
+
+  tableData.forEach(function(rowData) {
+    var row = document.createElement("tr");
+    rowData.forEach(function(cellData) {
+      // This may cause bug later
+      // TODO clever solution
+      // filtering out extra location via length. very dumb
+      if (cellData != rowData[0] && cellData.length < 60) {
+        var cell = document.createElement("td");
+        cell.appendChild(document.createTextNode(cellData));
+        // Click listener for row
+        cell.addEventListener("click", function(rowData) {
+          // alert data ID
+          alert(rowData[0]);
+        });
+        row.appendChild(cell);
+      }
+    });
+
+    tableBody.appendChild(row);
+  });
+
+  table.appendChild(tableBody);
+  return table;
+}
+function createUserTable(tableData) {
+  var table = document.createElement("table");
+  var tableBody = document.createElement("tbody");
+
+  tableData.forEach(function(rowData) {
+    var row = document.createElement("tr");
+    let rData = rowData;
+    rowData.forEach(function(cellData) {
+      // This may cause bug later
+      // TODO clever solution
+      // filtering out extra location via length. very dumb
+      var cell = document.createElement("td");
+      cell.appendChild(document.createTextNode(cellData));
+      // Click listener for row
+      cell.addEventListener("click", function(rowData) {
+        // alert data ID
+        currentUser = rData;
+        showUser(rData);
+      });
+      row.appendChild(cell);
+    });
+
+    tableBody.appendChild(row);
+  });
+
+  table.appendChild(tableBody);
+  return table;
+}
+function createHistoryTable(tableData) {
   var table = document.createElement("table");
   var tableBody = document.createElement("tbody");
 
   tableData.forEach(function(rowData) {
     var row = document.createElement("tr");
     rowData.forEach(function(cellData) {
-      // This may cause bug later
-      // filtering out extra location via length. very dumb
-      if (cellData != rowData[0] && cellData.length < 60) {
-        var cell = document.createElement("td");
-        cell.appendChild(document.createTextNode(cellData));
-        // Click listener for row
-        cell.addEventListener("click", function() {
-          // alert data ID
-          alert(rowData[0]);
-        });
-        row.appendChild(cell);
-      }
+      //if (cellData. != rowData[0]) {
+      var cell = document.createElement("td");
+      cell.appendChild(document.createTextNode(cellData));
+      row.appendChild(cell);
+      //}
     });
 
     tableBody.appendChild(row);
