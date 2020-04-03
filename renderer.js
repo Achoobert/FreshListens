@@ -7,12 +7,11 @@ const zerorpc = require("zerorpc");
 let client = new zerorpc.Client();
 client.connect("tcp://127.0.0.1:4242");
 debugger;
-let load = document.querySelector("#load");
+let loadUsers = document.querySelector("#loadUsers");
 let submitUser = document.querySelector("#submitUser");
 //
 let result = document.querySelector("#result");
 let newUser = document.querySelector("#newUser");
-let library = document.querySelector("#library");
 let users = document.querySelector("#users");
 let header = document.querySelector("#header");
 let userHistory = document.querySelector("#userHistory");
@@ -20,6 +19,7 @@ let userHistory = document.querySelector("#userHistory");
 // Global selecting variables
 var currentUser = 0;
 var currentHistory = [];
+var toSend = [];
 var currentTracks = [];
 
 ///// debugging stuff, delete later
@@ -42,14 +42,31 @@ echoButton.addEventListener("click", () => {
 });
 echoButton.dispatchEvent(new Event("click"));
 
-/////
+/////end debug
 
 // Make a single page app
 let body = document.querySelector("#body");
 let usersView = document.querySelector("#usersView");
 let userView = document.querySelector("#userView");
 let libraryView = document.querySelector("#libraryView");
+let library = document.querySelector("#library");
+let toSendView = document.querySelector("#toSendView");
 let loadUser = document.querySelector("#loadUser");
+
+let loadLibrary = document.querySelector("#loadLibrary");
+loadLibrary.addEventListener("click", () => {
+  console.log("click");
+  usersView.style.display = "none";
+  userView.style.display = "none";
+  libraryView.style.display = "block";
+
+  library.textContent = "  Loading . . .";
+
+  client.invoke("getLibrary", (error, res) => {
+    getLibrary();
+  });
+});
+
 loadUser.addEventListener("click", () => {
   // Clear
   client.invoke("testInsert", 1, 4, (error, res) => {
@@ -64,15 +81,16 @@ loadUser.addEventListener("click", () => {
 });
 //loadUser.dispatchEvent(new Event("click"));
 
-load.addEventListener("click", () => {
+loadUsers.addEventListener("click", () => {
   // TODO clear the divs before displaying
   usersView.style.display = "block";
   userView.style.display = "none";
+  toSendView.style.display = "none";
   libraryView.style.display = "none";
-  getLibrary();
+  //getLibrary();
   getUsers();
 });
-load.dispatchEvent(new Event("click"));
+loadUsers.dispatchEvent(new Event("click"));
 //
 submitUser.addEventListener("click", () => {
   console.log("clicked");
@@ -119,7 +137,7 @@ function getLibrary() {
       console.error(error);
     } else {
       clearEle(library);
-      library.appendChild(createTable(res));
+      library.appendChild(createLibraryTable(res));
     }
   });
 }
@@ -132,6 +150,9 @@ function displayHistory(userId) {
       clearEle(userHistory);
       if (res == null) {
         userHistory.textContent = "null return";
+      } else if (res.length == 0) {
+        currentHistory = res;
+        userHistory.textContent = "No User History";
       } else {
         console.log(res);
         currentHistory = res;
@@ -140,6 +161,14 @@ function displayHistory(userId) {
       }
     }
   });
+}
+function toSendAdd(data) {
+  // add to global object
+  toSend.push(data);
+  // clear, show, and Update view
+  clearEle(toSendView);
+  toSendView.style.display = "block";
+  toSendView.appendChild(createTable(toSend));
 }
 function moveSelected() {}
 function unMountDrive() {}
@@ -150,15 +179,37 @@ function unMountDrive() {}
   users.appendChild(createTable(res));
   TODO have event listener be a passed variable?
 */
-function createTable(tableData, onClickFunc) {
+function createLibraryTable(tableData) {
   var table = document.createElement("table");
   var tableBody = document.createElement("tbody");
-  if (onClickFunc == undefined) {
-    onClickFunc = function(rowData) {
-      // alert data ID
-      alert(rowData[0]);
-    };
-  }
+  tableData.forEach(function(rowData) {
+    var row = document.createElement("tr");
+    rowData.forEach(function(cellData) {
+      // This may cause bug later
+      // TODO clever solution
+      // filtering out extra location via length. very dumb
+      if (cellData != rowData[0] && cellData.length < 60) {
+        var cell = document.createElement("td");
+        cell.appendChild(document.createTextNode(cellData));
+        // Click listener for row
+        cell.addEventListener("click", function() {
+          // user clicked on row
+          toSendAdd(rowData);
+          //alert(rowData);
+        });
+        row.appendChild(cell);
+      }
+    });
+
+    tableBody.appendChild(row);
+  });
+
+  table.appendChild(tableBody);
+  return table;
+}
+function createTable(tableData) {
+  var table = document.createElement("table");
+  var tableBody = document.createElement("tbody");
 
   tableData.forEach(function(rowData) {
     var row = document.createElement("tr");
@@ -198,7 +249,7 @@ function createUserTable(tableData) {
       var cell = document.createElement("td");
       cell.appendChild(document.createTextNode(cellData));
       // Click listener for row
-      cell.addEventListener("click", function(rowData) {
+      cell.addEventListener("click", function() {
         // alert data ID
         currentUser = rData;
         showUser(rData);
@@ -216,14 +267,16 @@ function createHistoryTable(tableData) {
   var table = document.createElement("table");
   var tableBody = document.createElement("tbody");
 
-  tableData.forEach(function(rowData) {
+  tableData.forEach(function(rowData1) {
     var row = document.createElement("tr");
-    rowData.forEach(function(cellData) {
-      //if (cellData. != rowData[0]) {
-      var cell = document.createElement("td");
-      cell.appendChild(document.createTextNode(cellData));
-      row.appendChild(cell);
-      //}
+    rowData1.forEach(function(rowData) {
+      rowData.forEach(function(cellData) {
+        if (cellData != rowData[0]) {
+          var cell = document.createElement("td");
+          cell.appendChild(document.createTextNode(cellData));
+          row.appendChild(cell);
+        }
+      });
     });
 
     tableBody.appendChild(row);

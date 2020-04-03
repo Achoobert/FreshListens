@@ -172,11 +172,6 @@ libraryDatabaseInit()
 # c. enter IDs for songs desired to send, in order you want them to play
 
 # TODO display users
-def displayUsers():
-    for row in c.execute('SELECT * FROM users ORDER BY user_id'):
-        print(row[0], row[1])
-    uiPickUser()
-
 
 def getUsers():
     arr = []
@@ -193,12 +188,6 @@ def getLibrary():
         arr.append([row[0], row[1], row[2], row[3], row[4]])
     #c.execute('SELECT * FROM users ORDER BY user_id')
     return arr
-
-
-def displayLibrary():
-    print("\n\nDisplaying available tracks")
-    for row in c.execute('SELECT * FROM library ORDER BY track_id'):
-        print(row[0], row[1])
 
 def sendTracks(userID):
     displayLibrary()
