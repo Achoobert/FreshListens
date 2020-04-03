@@ -1,0 +1,30 @@
+<!-- user.html -->
+<!--
+#   show history,
+#   edit?
+
+
+//  load other html
+// have to use get to do data
+var xhr = new XMLHttpRequest();
+xhr.open("GET", "./pages/user.html", true);
+xhr.onreadystatechange = function() {
+  if (this.readyState !== 4) return;
+  if (this.status !== 200) return; // or whatever error handling you want
+  document.getElementById("body").innerHTML = this.responseText;
+};
+xhr.send();
+//
+
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>heloo title</title>
+  </head>
+  <body>
+    <h1 id="header">hello this is header</h1>
+    <div id="hw">Hello this is user data</div>
+  </body>
+</html>

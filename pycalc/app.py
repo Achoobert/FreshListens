@@ -1,5 +1,6 @@
 # coding: utf_8
 # file management
+import shutil
 from datetime import date
 from pathlib import Path
 import os
@@ -9,7 +10,7 @@ import sqlite3
 conn = sqlite3.connect('library.db')
 c = conn.cursor()
 # File manage
-import shutil
+# UI
 
 
 def checkDatabase():  # Create database IF NOT EXISTS
@@ -74,17 +75,26 @@ def sendFiles(sendTracks, user_id, drive):  # toSend, list of requested files
 
 def logFileReceived(userID, fileID):
     today = date.today()
+    # c.execute("INSERT INTO history VALUES ('2006-01-05', 1, 8)")
+    # conn.commit()
+
     # add date sent to user
     # history_id, date , user_id , track_id ,
-    c.execute("INSERT INTO history VALUES (null,'" +
-              today.strftime("%d/%m/%Y")+"', ? , ?)", (userID, fileID))
+    c.execute("INSERT OR IGNORE INTO history VALUES (null,'" +
+              today.strftime("%d/%m/%Y")+"', ?,   ?)", (1, 3))
+    
+    arr = []
+    for row in c.execute("SELECT * FROM history where user_id=" + str(userID)):
+        #print([row[0], row[1], row[2]])
+        arr.append(row)
     conn.commit()
+    return (arr)
 
 
 # send
-# current filesystem loc, int, Drive tosendto
+# current filesystem loc, int, Drive toSendTo
 def send(srcLocation, order, drive):
-    print("sending file...", srcLocation, " ", order , " ", drive)
+    print("sending file...", srcLocation, " ", order, " ", drive)
     #srcLocation = 'D:\\OneDrive\\Documents\\Work\\Library Manager\\Audioก\\teachings\\teaching 4.mp3'
     # 001, 012, 123... force proper sorting
     if (order > 9):
@@ -93,26 +103,55 @@ def send(srcLocation, order, drive):
         placeSTR = str(order)
     else:
         placeSTR = ("00"+str(order))
-    
+
     # c:\\001teaching 4.mp3
     dst = os.path.join(drive + ':\\' + placeSTR + '_teaching 4.mp3')
-    print (dst)
+    print(dst)
     # C:\\teaching 4.mp3
 
     shutil.copy(srcLocation, dst)
     print("Success")
 
 
-def addUser():
-    name = input("Enter Listener's Name")
-    location = input("Enter location")
-    # user name, village LOCATION name
+def addUser(userData):
+    name = userData[0]
+    location = userData[1]
+    # ???, user name, village LOCATION name
     c.execute("INSERT OR IGNORE INTO users VALUES (?, ?s, ?s)",
               "", name, location)
     conn.commit()
 
+def getHistory(userID):
 
-def reviewSentTracks():
+    historyArr = []
+    for row in c.execute('SELECT * FROM history where user_id=?', str(userID)):
+        #print([row[0], row[1], row[2]])
+        historyArr.append([row[0], row[1], row[2], row[3]])
+    #c.execute('SELECT * FROM users ORDER BY user_id')
+    #return historyArr
+
+    # TODO show user's track history
+    arr = []
+    #for row in c.execute('SELECT * FROM users ORDER BY user_id')
+    for row in (historyArr): #c.execute("SELECT * FROM history ORDER BY user_id "):#, str(userID)):
+        #arr.append(row[1]) # 1
+        #rowData = row
+        try:
+            for row2 in c.execute('SELECT * FROM library where track_id='+ str(row[3])):
+                rowData = [row2[0], row[1], row2[1], row2[3]]
+                #id, date, name, type
+                arr.append([rowData]) #0, 1, 3
+        except:
+            return("error", row)
+    return (arr)
+    
+
+
+def getDrives():
+    #TODO, return array? of available external drives/devices
+    print("todo")
+
+def reviewSentTracks(userID):
     # just print the whole sql
     print('todo')
 
@@ -133,40 +172,24 @@ libraryDatabaseInit()
 # c. enter IDs for songs desired to send, in order you want them to play
 
 # TODO display users
-def displayUsers():
+
+def getUsers():
+    arr = []
     for row in c.execute('SELECT * FROM users ORDER BY user_id'):
-        print(row[0], row[1])
-    uiPickUser()
+        #print([row[0], row[1], row[2]])
+        arr.append([row[0], row[1], row[2]])
+    #c.execute('SELECT * FROM users ORDER BY user_id')
+    return arr
 
-
-def displayLibrary():
-    print("\n\nDisplaying available tracks")
+def getLibrary():
+    arr = []
     for row in c.execute('SELECT * FROM library ORDER BY track_id'):
-        print(row[0], row[1])
+        #print([row[0], row[1], 'location', row[3], row[4]])
+        arr.append([row[0], row[1], row[2], row[3], row[4]])
+    #c.execute('SELECT * FROM users ORDER BY user_id')
+    return arr
 
-
-def uiPickUser():
-    choice = input(
-        "Enter matching ID to user to select\nEnter 'add' to create a new user\nEnter 'exit' to exit :(\n")
-
-    if choice == 'exit':
-        print('error')  # TODO exit
-    if choice == 'add':
-        addUser()
-    else:
-        # get name from library, depending on if in history
-        # userID -> history -> library
-
-        #searchUser = int(choice)
-        # TODO remove
-        searchUser = 1
-
-        displayFileHistory(searchUser)
-        # send to next ui step
-        uiPickTracks(searchUser)
-
-
-def uiPickTracks(userID):
+def sendTracks(userID):
     displayLibrary()
     choice = input(
         "enter enter IDs for tracks, in the order you want them to play\nOr 'back' to go back to the ̶f̶u̶t̶u̶r̶e̶  user list\n")
@@ -186,7 +209,5 @@ def uiPickTracks(userID):
         sendFiles(trackList, userID, drive)
 
 
-displayUsers()
+# displayUsers()
 ############# TEMP UI END #############
-
-conn.close()

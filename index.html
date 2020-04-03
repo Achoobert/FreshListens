@@ -1,0 +1,68 @@
+<!-- index.html -->
+<!--
+#   all users w/ ids
+# a. select 'user' from list all users
+#   dispence history
+# b. option: back, send new
+#   list all tracks
+# c. enter IDs for songs desired to send, in order you want them to play 
+# d.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <title>Fresh Listens</title>
+  </head>
+  <body id="body">
+    <div id="todo">
+      usb drive view<br />
+      <br />
+      Sortable Select track<br />
+    </div>
+    <div id="echoDiv"></div>
+    <button id="echoButton">echo</button><br />
+    <button id="loadLibrary">Show Library</button><br />
+    <button id="loadUsers">Show Users</button>
+    <button id="loadUser">Force Insert</button>
+    <h1 id="header"></h1>
+    <div id="usersView">
+      <form id="newUser">
+        <label for="userName">Name:</label><br />
+        <input type="text" id="userName" name="userName" value="name" /><br />
+        <label for="lname">Location:</label><br />
+        <input
+          type="text"
+          id="location"
+          name="location"
+          value="location"
+        /><br /><br />
+        <input id="submitUser" type="button" value="Submit" />
+      </form>
+
+      <div id="users"></div>
+    </div>
+
+    <!--
+      How to format js insert as a table??????
+    -->
+    <div id="userView">
+      <p>user History data</p>
+      <div id="userHistory"></div>
+    </div>
+
+    <!--
+      Library View
+    -->
+    <div id="libraryView">
+      <p>Tracks to send data</p>
+      <div id="toSendView">No data to be sent</div>
+      <p>Library data</p>
+      <div id="library"></div>
+    </div>
+  </body>
+  <script>
+    require("./renderer.js");
+  </script>
+</html>
