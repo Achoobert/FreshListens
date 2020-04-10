@@ -2,12 +2,22 @@
 //In renderer.js, we have codes for initialization of zerorpc client, and the code for watching the changes in the
 //input. Once the user
 // JS send the text to Python backend and retrieve the computed result.
+/*
+If something like dynamic linking errors shows up, try to clean the caches and install the libraries again.
+
+rm -rf node_modules
+rm -rf ~/.node-gyp ~/.electron-gyp
+
+npm install
+*/
 
 const zerorpc = require("zerorpc");
 let client = new zerorpc.Client();
 client.connect("tcp://127.0.0.1:4242");
-debugger;
+
 let loadUsers = document.querySelector("#loadUsers");
+let getDrives = document.querySelector("#getDrives");
+let viewDrives = document.querySelector("#viewDrives");
 let submitUser = document.querySelector("#submitUser");
 //
 let result = document.querySelector("#result");
@@ -15,12 +25,14 @@ let newUser = document.querySelector("#newUser");
 let users = document.querySelector("#users");
 let header = document.querySelector("#header");
 let userHistory = document.querySelector("#userHistory");
+let sendTracks = document.querySelector("#sendTracks");
 
 // Global selecting variables
 var currentUser = 0;
 var currentHistory = [];
 var toSend = [];
 var currentTracks = [];
+var selectedDrive = [];
 
 ///// debugging stuff, delete later
 let echoDiv = document.querySelector("#echoDiv");
@@ -29,7 +41,7 @@ echoButton.addEventListener("click", () => {
   console.log("click");
   clearEle(echoDiv);
   echoDiv.textContent = "renderer works";
-  client.invoke("echo", "api.py working", (error, res) => {
+  client.invoke("echo", "api.py -> app.py working", (error, res) => {
     if (error) {
       console.error(error);
       echoDiv.textContent = "api.py busted";
@@ -52,6 +64,37 @@ let libraryView = document.querySelector("#libraryView");
 let library = document.querySelector("#library");
 let toSendView = document.querySelector("#toSendView");
 let loadUser = document.querySelector("#loadUser");
+
+sendTracks.addEventListener("click", () => {
+  console.log("click");
+  clearEle(echoDiv);
+  echoDiv.textContent = "renderer works";
+  client.invoke("getDrives", (error, res) => {
+    if (error) {
+      console.error(error);
+    } else {
+      console.log(res);
+      viewDrives.textContent(res);
+    }
+  });
+});
+sendTracks.dispatchEvent(new Event("click"));
+
+getDrives.addEventListener("click", () => {
+  console.log("click");
+  clearEle(echoDiv);
+  echoDiv.textContent = "renderer works";
+  client.invoke("getDrives", (error, res) => {
+    if (error) {
+      console.error(error);
+      viewDrives.textContent = "drive getting busted";
+    } else {
+      //console.log(res);
+      viewDrives.appendChild(createDriveTable(res));
+    }
+  });
+});
+getDrives.dispatchEvent(new Event("click"));
 
 let loadLibrary = document.querySelector("#loadLibrary");
 loadLibrary.addEventListener("click", () => {
@@ -182,9 +225,9 @@ function unMountDrive() {}
 function createLibraryTable(tableData) {
   var table = document.createElement("table");
   var tableBody = document.createElement("tbody");
-  tableData.forEach(function(rowData) {
+  tableData.forEach(function (rowData) {
     var row = document.createElement("tr");
-    rowData.forEach(function(cellData) {
+    rowData.forEach(function (cellData) {
       // This may cause bug later
       // TODO clever solution
       // filtering out extra location via length. very dumb
@@ -192,7 +235,7 @@ function createLibraryTable(tableData) {
         var cell = document.createElement("td");
         cell.appendChild(document.createTextNode(cellData));
         // Click listener for row
-        cell.addEventListener("click", function() {
+        cell.addEventListener("click", function () {
           // user clicked on row
           toSendAdd(rowData);
           //alert(rowData);
@@ -211,9 +254,9 @@ function createTable(tableData) {
   var table = document.createElement("table");
   var tableBody = document.createElement("tbody");
 
-  tableData.forEach(function(rowData) {
+  tableData.forEach(function (rowData) {
     var row = document.createElement("tr");
-    rowData.forEach(function(cellData) {
+    rowData.forEach(function (cellData) {
       // This may cause bug later
       // TODO clever solution
       // filtering out extra location via length. very dumb
@@ -221,7 +264,7 @@ function createTable(tableData) {
         var cell = document.createElement("td");
         cell.appendChild(document.createTextNode(cellData));
         // Click listener for row
-        cell.addEventListener("click", function(rowData) {
+        cell.addEventListener("click", function (rowData) {
           // alert data ID
           alert(rowData[0]);
         });
@@ -235,21 +278,43 @@ function createTable(tableData) {
   table.appendChild(tableBody);
   return table;
 }
+function createDriveTable(tableData) {
+  var table = document.createElement("table");
+  var tableBody = document.createElement("tbody");
+
+  tableData.forEach(function (rowData) {
+    var row = document.createElement("tr");
+    rowData.forEach(function (cellData) {
+      var cell = document.createElement("td");
+      cell.appendChild(document.createTextNode(cellData));
+      cell.addEventListener("click", function () {
+        selectedDrive = rowData;
+        alert(rowData);
+      });
+      row.appendChild(cell);
+    });
+
+    tableBody.appendChild(row);
+  });
+
+  table.appendChild(tableBody);
+  return table;
+}
 function createUserTable(tableData) {
   var table = document.createElement("table");
   var tableBody = document.createElement("tbody");
 
-  tableData.forEach(function(rowData) {
+  tableData.forEach(function (rowData) {
     var row = document.createElement("tr");
     let rData = rowData;
-    rowData.forEach(function(cellData) {
+    rowData.forEach(function (cellData) {
       // This may cause bug later
       // TODO clever solution
       // filtering out extra location via length. very dumb
       var cell = document.createElement("td");
       cell.appendChild(document.createTextNode(cellData));
       // Click listener for row
-      cell.addEventListener("click", function() {
+      cell.addEventListener("click", function () {
         // alert data ID
         currentUser = rData;
         showUser(rData);
@@ -267,10 +332,10 @@ function createHistoryTable(tableData) {
   var table = document.createElement("table");
   var tableBody = document.createElement("tbody");
 
-  tableData.forEach(function(rowData1) {
+  tableData.forEach(function (rowData1) {
     var row = document.createElement("tr");
-    rowData1.forEach(function(rowData) {
-      rowData.forEach(function(cellData) {
+    rowData1.forEach(function (rowData) {
+      rowData.forEach(function (cellData) {
         if (cellData != rowData[0]) {
           var cell = document.createElement("td");
           cell.appendChild(document.createTextNode(cellData));
@@ -288,3 +353,40 @@ function createHistoryTable(tableData) {
 function clearEle(elementID) {
   elementID.innerHTML = "";
 }
+
+//TODO
+function getDrivesFunction() {
+  client.invoke("get_drive_info", (error, drive_info) => {
+    if (error) {
+      console.error(error);
+    } else {
+      clearEle(driveList);
+      if (drive_info == null) {
+        driveList.textContent = "null return";
+      } else {
+        console.log(drive_info);
+        driveList = drive_info;
+        let string = "";
+        res.forEach(function (row) {
+          string = string + toString(row) + " <br/>";
+        });
+        driveList.textContent = "<br/>";
+        //driveList.appendChild(createHistoryTable(res));
+      }
+    }
+  });
+}
+/*
+# Test
+if __name__ == '__main__':
+    drive_info = get_drive_info()
+    for drive_letter, drive_type in drive_info:
+        print '%s = %s' % (drive_letter, DRIVE_TYPE_MAP[drive_type])
+    removable_drives = [drive_letter for drive_letter, drive_type in drive_info if drive_type == DRIVE_REMOVABLE]
+    print 'removable_drives = %r' % removable_drives
+#C: = DRIVE_FIXED
+#D: = DRIVE_FIXED
+#E: = DRIVE_CDROM
+#F: = DRIVE_REMOVABLE
+#removable_drives = ['F:']
+*/

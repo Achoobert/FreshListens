@@ -1,6 +1,6 @@
 from __future__ import print_function
 # import 'logic' files here here
-from calc import calc as real_calc
+# from calc import calc as real_calc
 from app import *
 import sys
 import zerorpc
@@ -17,8 +17,11 @@ class Api(object):
     #   Take track ids, os send to drive(store)
     #   Disconnect drive
     def echo(self, text):
-        """echo any text"""
-        return text
+        """send any text to app.py to get echoed"""
+        try:
+            return echo(text)
+        except Exception as e:
+            return ("app.py broken")
     def getUsers(self):
         """based on the input text, return the int result"""
         try:
@@ -36,17 +39,19 @@ class Api(object):
         try:
             return getDrives()
         except Exception as e:
-            return 0.0
+            return ("get drives is not responding")
     def getLibrary(self):
         """based on the input text, return the int result"""
         try:
             return getLibrary()
         except Exception as e:
             return 0.0
-    def sendTracks(self, userID):        
+    def sendFiles(self, dataArr):        
         """based on the input text, return the int result"""
         try:
-            return sendTracks(userID)
+            # sendTracks, user_id, drive
+            return sendFiles(dataArr)
+            # TODO
         except Exception as e:
             return 0.0
     def newUser(self,userData):
@@ -59,9 +64,15 @@ class Api(object):
         """log File Received"""
         # userID, fileID
         try:
-            return logFileReceived(user, track)
+            return (user, track)
         except:
             return ("not working")
+    def get_drive_info(self):
+        """Return list of drives"""
+        try:
+            return get_drive_info()
+        except:
+            return ("drive info working")
 
 def parse_port():
     return 4242

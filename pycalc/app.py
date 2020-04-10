@@ -44,12 +44,6 @@ def libraryDatabaseInit():  # check whole library location for new files (IF NOT
     conn.commit()
 
 
-def displayFileHistory(userID):  # return array 'trackID, trackName, givenDate'
-    for row in c.execute("SELECT track_id FROM history where user_id=1"):
-        for row2 in c.execute("SELECT * FROM library where track_id=?", (row)):
-            print(row2[0], row[1])
-    # TODO access database using userID
-
 
 def getFileSizeTotal(sendTracks):
     total = 0
@@ -110,7 +104,7 @@ def send(srcLocation, order, drive):
     # C:\\teaching 4.mp3
 
     shutil.copy(srcLocation, dst)
-    print("Success")
+    return("Success")
 
 
 def addUser(userData):
@@ -146,14 +140,9 @@ def getHistory(userID):
     return (arr)
     
 
-
-def getDrives():
-    #TODO, return array? of available external drives/devices
-    print("todo")
-
 def reviewSentTracks(userID):
     # just print the whole sql
-    print('todo')
+    return('todo')
 
 
 # Create database IF NOT EXISTS
@@ -211,3 +200,57 @@ def sendTracks(userID):
 
 # displayUsers()
 ############# TEMP UI END #############
+def echo(text):
+    return (text)
+
+####### Get Removable Drives
+import ctypes
+from os.path import sep, dirname, expanduser, isdir
+from os import walk
+import string
+
+import platform
+platform = platform.system()
+
+if platform == 'Windows':
+    from ctypes import windll, create_unicode_buffer
+# Return list of tuples mapping drive letters to drive types
+# Copied from stack overflow so may break 🙏
+def getDrives():
+    drives = []
+    if platform == 'Windows':
+        bitmask = windll.kernel32.GetLogicalDrives()
+        GetVolumeInformationW = windll.kernel32.GetVolumeInformationW
+        for letter in string.ascii_uppercase:
+            if bitmask & 1:
+                name = create_unicode_buffer(64)
+                # get name of the drive
+                drive = letter + u':'
+                res = GetVolumeInformationW(drive + sep, name, 64, None,
+                                            None, None, None, 0)
+                #if (drive != 'C:' and drive != 'D:'):
+                #    drives.append((drive, name.value))
+                drives.append((drive, name.value))
+            bitmask >>= 1
+    elif platform == 'Linux':
+        drives.append((sep, sep))
+        drives.append((expanduser(u'~'), '~/'))
+        places = (sep + u'mnt', sep + u'media')
+        for place in places:
+            if isdir(place):
+                for directory in walk(place).next()[1]:
+                    drives.append((place + sep + directory, directory))
+    elif platform == 'Darwin' or platform == 'ios':
+        drives.append((expanduser(u'~'), '~/'))
+        vol = sep + u'Volume'
+        if isdir(vol):
+            for drive in walk(vol).next()[1]:
+                drives.append((vol + sep + drive, drive))
+    return drives
+
+#C: = DRIVE_FIXED
+#D: = DRIVE_FIXED
+#E: = DRIVE_CDROM
+#F: = DRIVE_REMOVABLE
+#removable_drives = ['F:']
+

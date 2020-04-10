@@ -1,12 +1,6 @@
 <!-- index.html -->
 <!--
-#   all users w/ ids
-# a. select 'user' from list all users
-#   dispence history
-# b. option: back, send new
-#   list all tracks
-# c. enter IDs for songs desired to send, in order you want them to play 
-# d.
+#   
 -->
 <!DOCTYPE html>
 <html>
@@ -17,12 +11,27 @@
   </head>
   <body id="body">
     <div id="todo">
-      usb drive view<br />
-      <br />
+      Select library location<br />
+      display [1] [2] [3] ... pages for library<br />
+      send file #1 to drive E:<br />
+      unMount drive???<br />
       Sortable Select track<br />
+    </div>
+
+    <div id="pickLibraryLocation">
+      <input
+        aria-label="Choose Library Drive"
+        accept="*"
+        role="button"
+        tabindex="0"
+        type="file"
+        id="filePick"
+      />
     </div>
     <div id="echoDiv"></div>
     <button id="echoButton">echo</button><br />
+    <div id="viewDrives"></div>
+    <button id="getDrives">Show Drives</button><br />
     <button id="loadLibrary">Show Library</button><br />
     <button id="loadUsers">Show Users</button>
     <button id="loadUser">Force Insert</button>
@@ -45,14 +54,6 @@
     </div>
 
     <!--
-      How to format js insert as a table??????
-    -->
-    <div id="userView">
-      <p>user History data</p>
-      <div id="userHistory"></div>
-    </div>
-
-    <!--
       Library View
     -->
     <div id="libraryView">
@@ -60,6 +61,15 @@
       <div id="toSendView">No data to be sent</div>
       <p>Library data</p>
       <div id="library"></div>
+    </div>
+    <br /><button id="sendTracks">Send Tracks</button><br />
+    <!--
+      How to format js insert as a table??????
+    -->
+
+    <div id="userView">
+      <p>user History data</p>
+      <div id="userHistory"></div>
     </div>
   </body>
   <script>
