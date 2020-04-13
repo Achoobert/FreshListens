@@ -12,7 +12,6 @@ c = conn.cursor()
 # File manage
 # UI
 
-
 def checkDatabase():  # Create database IF NOT EXISTS
     c.execute(
         '''CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, name text, location text )''')
@@ -23,7 +22,7 @@ def checkDatabase():  # Create database IF NOT EXISTS
 
 def libraryDatabaseInit():  # check whole library location for new files (IF NOT EXISTS)
     # TODO user add ifnull/edit option library location on startup
-    library_path = str("D:\OneDrive\Documents\Work\Library Manager\Audioก")
+    library_path = str("D:\schubert.dev\Library Manager\Audioก")
     #print("checking Database")
     files = []
     # r=root, d=directories, f = files
@@ -56,15 +55,31 @@ def getFileSizeTotal(sendTracks):
     return int(total)
 
 
-def sendFiles(sendTracks, user_id, drive):  # toSend, list of requested files
-    for i, trackID in enumerate(sendTracks):
-        c.execute(
-            "SELECT location FROM library WHERE track_id=?", (trackID,))  # note: needs to be sequence
-        # send file (index === order of play)
-        send(c.fetchone()[0], i, drive)
-        # Save sent file to history table
-        logFileReceived(user_id, trackID)
-        #
+def sendFiles(dataArr):
+    # [[[0,'ok','C:/users/music/hi.mp3'],[1],[2]],[0, bob],["E:"]]
+    toSend = dataArr[0]     # toSend: 0 id, 1 name, 2 path, 3 type, 4 size
+    currentUser = dataArr[1]
+    selectedDrive  = dataArr[2] 
+    processedFiles = []
+    for i, item in enumerate(toSend):
+        # get proper path from database
+        # trying to pass it back and forth causes issues
+        c.execute("Select location FROM library WHERE track_id=?",(item[0]))
+        source = c.fetchone()[0]
+        # Get source filename with filetype ex: ".mp3"
+        filename = (os.path.basename(os.path.normpath(source)))
+        # make destination path + order in sent array + file name "D:/001__file.txt"
+        destination = (selectedDrive+'/'+str(("{:03d}".format(i)))+'__'+filename)
+        # os.path.join(///x.mp3)
+        try:
+            shutil.copyfile(Path(source), Path(destination), follow_symlinks=True)  
+            # Save sent file to history table
+            logFileReceived(currentUser[0], item[0])
+            processedFiles.append([source, destination])
+        except Exception as e:
+            return e
+            
+    return processedFiles
 
 
 def logFileReceived(userID, fileID):
@@ -76,35 +91,8 @@ def logFileReceived(userID, fileID):
     # history_id, date , user_id , track_id ,
     c.execute("INSERT OR IGNORE INTO history VALUES (null,'" +
               today.strftime("%d/%m/%Y")+"', ?,   ?)", (1, 3))
-    
-    arr = []
-    for row in c.execute("SELECT * FROM history where user_id=" + str(userID)):
-        #print([row[0], row[1], row[2]])
-        arr.append(row)
     conn.commit()
-    return (arr)
-
-
-# send
-# current filesystem loc, int, Drive toSendTo
-def send(srcLocation, order, drive):
-    print("sending file...", srcLocation, " ", order, " ", drive)
-    #srcLocation = 'D:\\OneDrive\\Documents\\Work\\Library Manager\\Audioก\\teachings\\teaching 4.mp3'
-    # 001, 012, 123... force proper sorting
-    if (order > 9):
-        placeSTR = ("0"+str(order))
-    elif (order > 99):
-        placeSTR = str(order)
-    else:
-        placeSTR = ("00"+str(order))
-
-    # c:\\001teaching 4.mp3
-    dst = os.path.join(drive + ':\\' + placeSTR + '_teaching 4.mp3')
-    print(dst)
-    # C:\\teaching 4.mp3
-
-    shutil.copy(srcLocation, dst)
-    return("Success")
+    return True
 
 
 def addUser(userData):
@@ -152,16 +140,6 @@ checkDatabase()
 libraryDatabaseInit()
 
 
-############ TEMP UI ##################
-#   all users w/ ids
-# a. select 'user' from list all users
-#   dispence history
-# b. option: back, send new
-#   list all tracks
-# c. enter IDs for songs desired to send, in order you want them to play
-
-# TODO display users
-
 def getUsers():
     arr = []
     for row in c.execute('SELECT * FROM users ORDER BY user_id'):
@@ -174,28 +152,9 @@ def getLibrary():
     arr = []
     for row in c.execute('SELECT * FROM library ORDER BY track_id'):
         #print([row[0], row[1], 'location', row[3], row[4]])
-        arr.append([row[0], row[1], row[2], row[3], row[4]])
+        arr.append([row[0], row[1], row[3], row[4]])
     #c.execute('SELECT * FROM users ORDER BY user_id')
     return arr
-
-def sendTracks(userID):
-    displayLibrary()
-    choice = input(
-        "enter enter IDs for tracks, in the order you want them to play\nOr 'back' to go back to the ̶f̶u̶t̶u̶r̶e̶  user list\n")
-
-    if choice == 'exit':
-        print('error')  # TODO exit
-    if choice == 'back':
-        displayUsers()
-    else:
-        # parse choice into array of int
-        # trackList = choice.split(" ")
-        trackList = [14, 13, 21, 16]
-        # report size
-        print("Selected files are", getFileSizeTotal(trackList), "MB")
-        # send
-        drive = 'D'
-        sendFiles(trackList, userID, drive)
 
 
 # displayUsers()
@@ -248,9 +207,4 @@ def getDrives():
                 drives.append((vol + sep + drive, drive))
     return drives
 
-#C: = DRIVE_FIXED
-#D: = DRIVE_FIXED
-#E: = DRIVE_CDROM
-#F: = DRIVE_REMOVABLE
-#removable_drives = ['F:']
 

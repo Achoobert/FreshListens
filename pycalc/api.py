@@ -21,39 +21,38 @@ class Api(object):
         try:
             return echo(text)
         except Exception as e:
-            return ("app.py broken")
+            return (str(e))
     def getUsers(self):
         """based on the input text, return the int result"""
         try:
             return getUsers()
         except Exception as e:
-            return 0.0
+            return (str(e))
     def getHistory(self, userID):
         """based on the input text, return the int result"""
         try:
             return getHistory(userID)
         except Exception as e:
-            return ("history not working")
+            return (str(e))
     def getDrives(self):
         """based on the input text, return the int result"""
         try:
             return getDrives()
         except Exception as e:
-            return ("get drives is not responding")
+            return (str(e))
     def getLibrary(self):
         """based on the input text, return the int result"""
         try:
             return getLibrary()
         except Exception as e:
-            return 0.0
+            return (str(e))
     def sendFiles(self, dataArr):        
         """based on the input text, return the int result"""
         try:
-            # sendTracks, user_id, drive
+            # toSend, currentUser, selectedDrive
             return sendFiles(dataArr)
-            # TODO
         except Exception as e:
-            return 0.0
+            return (e)
     def newUser(self,userData):
         """based on the input text, return the int result"""
         try:
@@ -65,14 +64,14 @@ class Api(object):
         # userID, fileID
         try:
             return (user, track)
-        except:
-            return ("not working")
+        except Exception as e:
+            return (str(e))
     def get_drive_info(self):
         """Return list of drives"""
         try:
             return get_drive_info()
-        except:
-            return ("drive info working")
+        except Exception as e:
+            return (str(e))
 
 def parse_port():
     return 4242

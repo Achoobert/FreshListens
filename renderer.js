@@ -25,14 +25,25 @@ let newUser = document.querySelector("#newUser");
 let users = document.querySelector("#users");
 let header = document.querySelector("#header");
 let userHistory = document.querySelector("#userHistory");
-let sendTracks = document.querySelector("#sendTracks");
+let sendFiles = document.querySelector("#sendFiles  ");
+let totalSendSize = 0;
+let fileTypesSend = [];
 
 // Global selecting variables
-var currentUser = 0;
+var currentUser = [1, "John", "city"];
 var currentHistory = [];
-var toSend = [];
-var currentTracks = [];
-var selectedDrive = [];
+// currently selected tracks to send to drive
+var toSend = [
+  [[1], ["11โต๋  - ขอบพระคุณ"], ["audio"], [3899303]],
+  [[40]],
+  [[60]],
+  [[200]],
+  [[100]],
+  [[94]],
+  [[150]],
+];
+// selected drive
+var selectedDrive = ["D:", "ThumbDrive"];
 
 ///// debugging stuff, delete later
 let echoDiv = document.querySelector("#echoDiv");
@@ -53,8 +64,7 @@ echoButton.addEventListener("click", () => {
   });
 });
 echoButton.dispatchEvent(new Event("click"));
-
-/////end debug
+///// end debug
 
 // Make a single page app
 let body = document.querySelector("#body");
@@ -65,21 +75,22 @@ let library = document.querySelector("#library");
 let toSendView = document.querySelector("#toSendView");
 let loadUser = document.querySelector("#loadUser");
 
-sendTracks.addEventListener("click", () => {
-  console.log("click");
-  clearEle(echoDiv);
-  echoDiv.textContent = "renderer works";
-  client.invoke("getDrives", (error, res) => {
-    if (error) {
-      console.error(error);
-    } else {
-      console.log(res);
-      viewDrives.textContent(res);
+sendFiles.addEventListener("click", () => {
+  //console.log([toSend, currentUser[0], selectedDrive[0]]);
+  client.invoke(
+    "sendFiles",
+    [toSend, currentUser, selectedDrive[0]],
+    (error, res) => {
+      if (error) {
+        console.error(error);
+      } else {
+        console.log(res);
+        //viewDrives.textContent(res);
+      }
     }
-  });
+  );
 });
-sendTracks.dispatchEvent(new Event("click"));
-
+//sendFiles.dispatchEvent(new Event("click"));
 getDrives.addEventListener("click", () => {
   console.log("click");
   clearEle(echoDiv);
@@ -171,6 +182,7 @@ function showUser(userData) {
   usersView.style.display = "none";
   userView.style.display = "block";
   header.textContent = userData[1];
+  console.log(userData);
   // get user's history
   displayHistory(userData[0]);
 }
@@ -197,7 +209,7 @@ function displayHistory(userId) {
         currentHistory = res;
         userHistory.textContent = "No User History";
       } else {
-        console.log(res);
+        //console.log(res);
         currentHistory = res;
         //userHistory.textContent = res;
         userHistory.appendChild(createHistoryTable(res));
@@ -208,9 +220,15 @@ function displayHistory(userId) {
 function toSendAdd(data) {
   // add to global object
   toSend.push(data);
+  console.log(toSend);
+  totalSize = data[3] + totalSize;
+  if (data[2] not in fileTypesSend){
+    fileTypesSend.append(data[2])
+  }
   // clear, show, and Update view
   clearEle(toSendView);
   toSendView.style.display = "block";
+  toSendView.textContent = ("Total size to send is " + str(totalSize))
   toSendView.appendChild(createTable(toSend));
 }
 function moveSelected() {}
@@ -228,13 +246,9 @@ function createLibraryTable(tableData) {
   tableData.forEach(function (rowData) {
     var row = document.createElement("tr");
     rowData.forEach(function (cellData) {
-      // This may cause bug later
-      // TODO clever solution
-      // filtering out extra location via length. very dumb
-      if (cellData != rowData[0] && cellData.length < 60) {
+      if (cellData != rowData[0]) {
         var cell = document.createElement("td");
         cell.appendChild(document.createTextNode(cellData));
-        // Click listener for row
         cell.addEventListener("click", function () {
           // user clicked on row
           toSendAdd(rowData);
@@ -260,7 +274,7 @@ function createTable(tableData) {
       // This may cause bug later
       // TODO clever solution
       // filtering out extra location via length. very dumb
-      if (cellData != rowData[0] && cellData.length < 60) {
+      if (cellData != rowData[0] && cellData != rowData[3]) {
         var cell = document.createElement("td");
         cell.appendChild(document.createTextNode(cellData));
         // Click listener for row
@@ -289,6 +303,7 @@ function createDriveTable(tableData) {
       cell.appendChild(document.createTextNode(cellData));
       cell.addEventListener("click", function () {
         selectedDrive = rowData;
+        console.log(rowData);
         alert(rowData);
       });
       row.appendChild(cell);
@@ -377,16 +392,7 @@ function getDrivesFunction() {
   });
 }
 /*
-# Test
-if __name__ == '__main__':
-    drive_info = get_drive_info()
-    for drive_letter, drive_type in drive_info:
-        print '%s = %s' % (drive_letter, DRIVE_TYPE_MAP[drive_type])
-    removable_drives = [drive_letter for drive_letter, drive_type in drive_info if drive_type == DRIVE_REMOVABLE]
-    print 'removable_drives = %r' % removable_drives
-#C: = DRIVE_FIXED
-#D: = DRIVE_FIXED
-#E: = DRIVE_CDROM
-#F: = DRIVE_REMOVABLE
-#removable_drives = ['F:']
+#
+#
+#
 */
