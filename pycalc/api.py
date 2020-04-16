@@ -53,19 +53,12 @@ class Api(object):
             return sendFiles(dataArr)
         except Exception as e:
             return (e)
-    def newUser(self,userData):
+    def addUser(self,userData):
         """based on the input text, return the int result"""
         try:
-            return (userData)
+            return addUser(userData)
         except Exception as e:
             return "error not inserted"
-    def testInsert(self, user, track):
-        """log File Received"""
-        # userID, fileID
-        try:
-            return (user, track)
-        except Exception as e:
-            return (str(e))
     def get_drive_info(self):
         """Return list of drives"""
         try:

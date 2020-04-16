@@ -43,7 +43,6 @@ def libraryDatabaseInit():  # check whole library location for new files (IF NOT
     conn.commit()
 
 
-
 def getFileSizeTotal(sendTracks):
     total = 0
     for i in sendTracks:
@@ -103,6 +102,7 @@ def addUser(userData):
               "", name, location)
     conn.commit()
 
+
 def getHistory(userID):
 
     historyArr = []
@@ -147,6 +147,7 @@ def getUsers():
         arr.append([row[0], row[1], row[2]])
     #c.execute('SELECT * FROM users ORDER BY user_id')
     return arr
+
 
 def getLibrary():
     arr = []

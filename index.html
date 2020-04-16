@@ -1,15 +1,134 @@
 <!-- index.html -->
-<!--
-#   
--->
+
 <!DOCTYPE html>
 <html>
   <head>
+    <!-- Bootstrap CSS -->
+    <!-- Bootstrap Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <link rel="stylesheet" href="./source/css/bootstrap.min.css" />
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="source/css/styles.css" />
+    <script>
+      window.$ = window.jQuery = require("jquery");
+      require("bootstrap");
+      require("jquery-ui-dist/jquery-ui");
+      require("popper.js");
+    </script>
+
     <title>Fresh Listens</title>
   </head>
   <body id="body">
+    <!-- displays selected user and drive -->
+    <h6 id="selected"></h6>
+    <!--
+      side-by-side view 
+      library - to Send Tracks
+    -->
+    <div id="toSendView">No data to be sent</div>
+    <!--
+      Start send
+    -->
+    <button id="sendFiles" 
+      style="display: block; 
+      margin-left: auto; 
+      margin-right: auto;">
+        send Files
+    </button>
+    <!--
+      Example Table
+    -->
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12" >
+          <table class="table table-hover" id="myTable">
+            <thead>
+              <tr>
+                <th scope="col" class="text-center">#</th>
+                <th scope="col">Input</th>
+                <th scope="col">First</th>
+                <th scope="col">Last</th>
+                <th scope="col">Handle</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr id="1">
+                <td class="index">1</td>
+                <td class="indexInput">
+                  <input type="text" name="abc" id="index" value="1" />
+                </td>
+                <td>Mark</td>
+                <td>Otto</td>
+                <td>@mdo</td>
+              </tr>
+              <tr id="2">
+                <td class="index">2</td>
+                <td class="indexInput">
+                  <input type="text" name="abc" id="index" value="2" />
+                </td>
+                <td>Jacob</td>
+                <td>Thornton</td>
+                <td>@fat</td>
+              </tr>
+              <tr id="3">
+                <td class="index">3</td>
+                <td class="indexInput">
+                  <input type="text" name="abc" id="index" value="3" />
+                </td>
+                <td>Larry</td>
+                <td>the Bird</td>
+                <td>@twitter</td>
+              </tr>
+            </tbodySortable>
+          </table>
+        </div>
+        <div class="col-lg-12" >
+          <table class="table table-hover" id="myTable">
+            <thead>
+              <tr>
+                <th scope="col" class="text-center">#</th>
+                <th scope="col">Input</th>
+                <th scope="col">First</th>
+                <th scope="col">Last</th>
+                <th scope="col">Handle</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr id="1">
+                <td class="index">1</td>
+                <td class="indexInput">
+                  <input type="text" name="abc" id="index" value="1" />
+                </td>
+                <td>Mark</td>
+                <td>Otto</td>
+                <td>@mdo</td>
+              </tr>
+              <tr id="2">
+                <td class="index">2</td>
+                <td class="indexInput">
+                  <input type="text" name="abc" id="index" value="2" />
+                </td>
+                <td>Jacob</td>
+                <td>Thornton</td>
+                <td>@fat</td>
+              </tr>
+              <tr id="3">
+                <td class="index">3</td>
+                <td class="indexInput">
+                  <input type="text" name="abc" id="index" value="3" />
+                </td>
+                <td>Larry</td>
+                <td>the Bird</td>
+                <td>@twitter</td>
+              </tr>
+            </tbodySortable>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!--
+      build notes
+    -->
     <div id="todo">
       Select library location<br />
       display [1] [2] [3] ... pages for library<br />
@@ -25,8 +144,11 @@
       play<br />
       # send <br />
     </div>
-
+    <!--
+      If library isn't selected
+    -->
     <div id="pickLibraryLocation">
+      <h3>Locate Library</h3>
       <input
         aria-label="Choose Library Drive"
         accept="*"
@@ -35,17 +157,25 @@
         type="file"
         id="filePick"
       />
-    </div>
+    </div><br/>
+    <!--
+      debug 
+    -->
     <div id="echoDiv"></div>
     <button id="echoButton">echo</button>
-    <button id="loadUser">test Insert user</button>
-    <div id="viewDrives"></div>
+    <!--
+      Select a drive
+    -->
+    <div id="viewDrives">
+      <h3>Choose Destination</h3>
+    </div>
+    <p></p><br/><br/><br/>
     <button id="getDrives">Drives</button>
     <button id="loadLibrary">Library</button>
     <button id="loadUsers">Users</button>
     <h1 id="header"></h1>
     <div id="usersView">
-      <form id="newUser">
+      <form id="addUser">
         <label for="userName">Name:</label><br />
         <input type="text" id="userName" name="userName" value="name" /><br />
         <label for="lname">Location:</label><br />
@@ -63,14 +193,18 @@
 
     <!--
       Library View
+      "max-hight" limit,
+      scroll-y
+      overflow-scroll-y
+      listener that corrects sorting of renderer array
     -->
+
     <div id="libraryView">
       <p>Tracks to send data</p>
-      <div id="toSendView">No data to be sent</div>
       <p>Library data</p>
       <div id="library"></div>
     </div>
-    <br /><button id="sendFiles">send Files</button><br />
+    
     <!--
       How to format js insert as a table??????
     -->

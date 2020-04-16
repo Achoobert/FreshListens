@@ -1,0 +1,55 @@
+body {
+  background-color: lightgrey;
+}
+
+h1 {
+  color: darkred;
+  text-align: center;
+}
+
+table {
+  border-collapse: collapse;
+  float: left;
+}
+
+table,
+th,
+td {
+  border: 1px solid black;
+}
+/* for drag-drop table */
+td:hover {
+  cursor: s-resize;
+}
+#sortable {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  width: 60%;
+}
+#sortable li {
+  margin: 0 3px 3px 3px;
+  padding: 0.4em;
+  padding-left: 1.5em;
+  font-size: 1.4em;
+  height: 18px;
+}
+#sortable li span {
+  position: absolute;
+  margin-left: -1.3em;
+}
+
+.row {
+  max-height: 450px;
+  border: 1px solid black;
+  overflow: hidden;
+  overflow-y: scroll;
+}
+.col-lg-12 {
+  max-height: 445px;
+  border: 1px solid black;
+  overflow: hidden;
+  overflow-y: scroll;
+  max-width: 50%;
+  float: left;
+}

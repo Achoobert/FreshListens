@@ -2,6 +2,7 @@ const electron = require("electron");
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 const path = require("path");
+let $ = require("jquery");
 
 //  to run this in test mode
 // './node_modules/.bin/electron .'
@@ -13,7 +14,7 @@ const createWindow = () => {
     require("url").format({
       pathname: path.join(__dirname, "index.html"),
       protocol: "file:",
-      slashes: true
+      slashes: true,
     })
   );
   mainWindow.webContents.openDevTools();
