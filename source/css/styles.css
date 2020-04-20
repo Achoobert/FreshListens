@@ -18,7 +18,7 @@ td {
   border: 1px solid black;
 }
 /* for drag-drop table */
-td:hover {
+.ui-sortable-handle:hover {
   cursor: s-resize;
 }
 #sortable {
@@ -44,6 +44,7 @@ td:hover {
   border: 1px solid black;
   overflow: hidden;
   overflow-y: scroll;
+  clear: left;
 }
 .col-lg-12 {
   max-height: 445px;

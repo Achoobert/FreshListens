@@ -19,7 +19,7 @@ let getDrives = document.querySelector("#getDrives");
 let viewDrives = document.querySelector("#viewDrives");
 let submitUser = document.querySelector("#submitUser");
 //
-//let addUser = document.querySelector("#addUser");
+// let addUser = document.querySelector("#addUser");
 let users = document.querySelector("#users");
 let header = document.querySelector("#header");
 let userHistory = document.querySelector("#userHistory");
@@ -34,8 +34,8 @@ async function asyncCallLibrary() {
   if (libraryObj == undefined || libraryObj == null) {
     console.log("calling");
     const result = await getLibrary();
-    //const result = await resolveAfter2Seconds();
-    //console.log(result);
+    // const result = await resolveAfter2Seconds();
+    // console.log(result);
     libraryObj = result;
     return result;
   } else {
@@ -43,17 +43,15 @@ async function asyncCallLibrary() {
   }
 }
 
-//asyncCallLibrary();
-
 var fileTypesSend = [];
 var totalSendSize = 0;
 var currentUser = [1, "John", "city"];
 var currentHistory = [];
 // currently selected tracks to send to drive
 var toSend = [
-  [[1], ["11โต๋  - ขอบพระคุณ"], ["audio"], [3899303]],
-  [[22], ["argerr"], ["audio"], [38903]],
-  [[43], ["songg"], ["audio"], [99303]],
+  [1, "11โต๋  - ขอบพระคุณ", "audio", 3899303],
+  [22, "argerr", "audio", 38903],
+  [43, "songg", "audio", 99303],
 ];
 // selected drive
 var selectedDrive = ["D:", "ThumbDrive"];
@@ -64,36 +62,26 @@ function updateSelected() {
 }
 
 ///// debugging stuff, delete later
-let echoDiv = document.querySelector("#echoDiv");
 let echoButton = document.querySelector("#echoButton");
-echoDiv.style.display = "none";
-echoButton.style.display = "none";
+
 echoButton.addEventListener("click", () => {
-  console.log("click");
-  clearEle(echoDiv);
-  echoDiv.textContent = "renderer works";
   client.invoke("echo", "api.py -> app.py working", (error, res) => {
-    echoDiv.style.display = "block";
     echoButton.style.display = "block";
     if (error) {
       console.error(error);
-      echoDiv.textContent = "api.py busted";
     } else {
-      //clearEle(users);
+      echoButton.style.display = "none";
       console.log(res);
-      echoDiv.textContent = res;
     }
   });
 });
-//echoButton.dispatchEvent(new Event("click"));
+echoButton.dispatchEvent(new Event("click"));
 ///// end debug
 
 // Make a single page app
-let body = document.querySelector("#body");
 let usersView = document.querySelector("#usersView");
 let userView = document.querySelector("#userView");
 let libraryView = document.querySelector("#libraryView");
-let library = document.querySelector("#library");
 let toSendView = document.querySelector("#toSendView");
 
 sendFiles.addEventListener("click", () => {
@@ -113,15 +101,11 @@ sendFiles.addEventListener("click", () => {
 });
 //sendFiles.dispatchEvent(new Event("click"));
 getDrives.addEventListener("click", () => {
-  console.log("click");
-  clearEle(echoDiv);
-  echoDiv.textContent = "renderer works";
   client.invoke("getDrives", (error, res) => {
     if (error) {
       console.error(error);
-      viewDrives.textContent = "drive getting busted";
+      viewDrives.textContent = "drive search busted";
     } else {
-      //console.log(res);
       viewDrives.appendChild(createDriveTable(res));
     }
   });
@@ -130,18 +114,16 @@ getDrives.dispatchEvent(new Event("click"));
 
 let loadLibrary = document.querySelector("#loadLibrary");
 loadLibrary.addEventListener("click", () => {
-  console.log("click");
-  usersView.style.display = "none";
-  userView.style.display = "none";
+  //usersView.style.display = "none";
+  //userView.style.display = "none";
   libraryView.style.display = "block";
-
-  library.textContent = "  Loading . . .";
+  //library.textContent = "  Loading . . .";
   toSendViewRender();
   //client.invoke("getLibrary", (error, res) => {
   //  getLibrary();
   //});
 });
-loadLibrary.dispatchEvent(new Event("click"));
+//loadLibrary.dispatchEvent(new Event("click"));
 loadUsers.addEventListener("click", () => {
   // TODO clear the divs before displaying
   usersView.style.display = "block";
@@ -149,28 +131,39 @@ loadUsers.addEventListener("click", () => {
   toSendView.style.display = "none";
   todo.style.display = "none";
   libraryView.style.display = "block";
-  //toSendViewRender();
-  //getLibrary();
-  getUsers();
+  clearEle(users);
+  async function asyncCallUsers() {
+    const result = await getUsers();
+    users.appendChild(result);
+    return result;
+  }
+  //const result = await getUsers()
+  asyncCallUsers();
+  toSendView.style.display = "block";
+  toSendView.appendChild(createSendTable(toSend));
 });
 loadUsers.dispatchEvent(new Event("click"));
 //
 submitUser.addEventListener("click", () => {
-  console.log("clicked");
   console.log(newUser.location.value, newUser.userName.value);
   addUser([newUser.userName.value, newUser.location.value]);
 });
 //submitUser.dispatchEvent(new Event("click"));
 
 //display, select-> display-display, select multiple->execute,
+// `divName`.appendChild(i()) -> getI -> createITable
 function getUsers() {
-  client.invoke("getUsers", (error, res) => {
-    if (error) {
-      console.error(error);
-    } else {
-      clearEle(users);
-      users.appendChild(createUserTable(res));
-    }
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      client.invoke("getUsers", (error, res) => {
+        if (error) {
+          console.error(error);
+        } else {
+          resolve(createUserTable(res));
+        }
+      });
+      //resolve("resolved");
+    }, 2000);
   });
 }
 function addUser(data) {
@@ -179,10 +172,8 @@ function addUser(data) {
     if (error) {
       console.error(error);
     } else {
-      console.log(res);
       // update the user list
       getUsers();
-      console.log(res);
     }
   });
 }
@@ -191,7 +182,6 @@ function showUser(userData) {
   usersView.style.display = "none";
   userView.style.display = "block";
   header.textContent = userData[1];
-  console.log(userData);
   // get user's history
   displayHistory(userData[0]);
 }
@@ -222,7 +212,6 @@ function displayHistory(userId) {
         currentHistory = res;
         userHistory.textContent = "No User History";
       } else {
-        //console.log(res);
         currentHistory = res;
         //userHistory.textContent = res;
         userHistory.appendChild(createHistoryTable(res));
@@ -240,11 +229,12 @@ function toSendAdd(data) {
   }
   toSendViewRender();
 }
-function toSendReorder(data) {
+function toSendReorder(arr) {
   // modify global object???
-  //toSend reorder as data
-  // TODO
-  toSendViewRender();
+  // reorder as data
+  console.log(toSend);
+  console.log(arr);
+  toSend = arr;
 }
 // clear, show, and Update view
 function toSendViewRender() {
@@ -262,16 +252,9 @@ function toSendViewRender() {
   ]);
   //toSendView.appendChild(sideBySide([libraryObj, createSendTable(toSend)]));
 }
-function resolveAfter2Seconds() {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve("resolved");
-    }, 2000);
-  });
-}
 
 /*
- * take in an array of table,
+ * take in an ARRAY of table,
  * return them next to each other in a row
  * //<div class="container">
  * //<div class="row"></div>
@@ -335,8 +318,6 @@ function createLibraryTable(tableData) {
     table.appendChild(tableHead);
   }
   createHeader();
-  //old
-
   tableData.forEach(function (rowData) {
     var row = document.createElement("tr");
     rowData.forEach(function (cellData) {
@@ -423,25 +404,26 @@ function createSendTable(tableData) {
   //create body
   tableData.forEach(function (rowData) {
     let row = document.createElement("tr");
+    var key = document.createElement("key");
+    // give it tag for tracking ID after drag
+    /*key.setAttribute("type", "hidden");
+    key.setAttribute("name", "fileID");
+    key.setAttribute("value", rowData);
+    row.appendChild(key);*/
+    row.setAttribute("id", rowData[0]);
+    row.setAttribute("key", rowData);
+    row.setAttribute("class", "ui-sortable-handle");
     rowData.forEach(function (cellData) {
       //TODO  force vertical??
-
+      // attach display cells
       if (cellData != rowData[3]) {
         var cell = document.createElement("td");
         cell.appendChild(document.createTextNode(cellData));
-        // give it tag for tracking ID after drag
-        var input = document.createElement("input");
-        input.setAttribute("type", "hidden");
-        input.setAttribute("name", "fileID");
-        input.setAttribute("value", rowData);
         //append to form element that you want .
-        row.appendChild(input);
-        row.setAttribute("id", rowData[0]);
-        row.setAttribute("class", "ui-sortable-handle");
         row.appendChild(cell);
       }
-      tableBody.appendChild(row);
     });
+    tableBody.appendChild(row);
   });
   table.appendChild(tableBody);
   outerBox.appendChild(table);
@@ -459,6 +441,7 @@ function createDriveTable(tableData) {
       cell.addEventListener("click", function () {
         selectedDrive = rowData;
         updateSelected();
+        viewDrives.style.display = "none";
       });
       row.appendChild(cell);
     });
@@ -488,6 +471,7 @@ function createUserTable(tableData) {
         currentUser = rData;
         updateSelected();
         showUser(rData);
+        usersView.style.display = "none";
       });
       row.appendChild(cell);
     });
@@ -524,29 +508,6 @@ function clearEle(elementID) {
   elementID.innerHTML = "";
 }
 
-//TODO
-function getDrivesFunction() {
-  client.invoke("get_drive_info", (error, drive_info) => {
-    if (error) {
-      console.error(error);
-    } else {
-      clearEle(driveList);
-      if (drive_info == null) {
-        driveList.textContent = "null return";
-      } else {
-        console.log(drive_info);
-        driveList = drive_info;
-        let string = "";
-        res.forEach(function (row) {
-          string = string + toString(row) + " <br/>";
-        });
-        driveList.textContent = "<br/>";
-        //driveList.appendChild(createHistoryTable(res));
-      }
-    }
-  });
-}
-
 /*
 #
 #   Methods for administrating table order
@@ -557,13 +518,13 @@ $(function () {
   $("#sortable").disableSelection();
 });
 var fixHelperModified = function (e, tr) {
-    var $originals = tr.children();
-    var $helper = tr.clone();
-    $helper.children().each(function (index) {
-      $(this).width($originals.eq(index).width());
-    });
-    return $helper;
-  },
+  var $originals = tr.children();
+  var $helper = tr.clone();
+  $helper.children().each(function (index) {
+    $(this).width($originals.eq(index).width());
+  });
+  return $helper;
+}; /*,
   updateIndex = function (e, ui) {
     alert("hi");
     console.log(e);
@@ -573,7 +534,7 @@ var fixHelperModified = function (e, tr) {
     $("input[type=text]", ui.item.parent()).each(function (i) {
       $(this).val(i + 1);
     });
-  };
+};*/
 
 $("#myTable tbody")
   .sortable({
@@ -585,8 +546,31 @@ $("#myTable tbody")
       $("input[type=text]", ui.item.parent()).each(function (i) {
         $(this).val(i + 1);
       });
-      console.log($("#myTable tbody").sortable("toArray"));
-      toSend = $("#myTable tbody").sortable("toArray");
+      // Parent
+      // ui.item[0].parentElement
+
+      // currently selected item, cycle children gives other details
+      // ui.item[0].children[0].childNodes[0]
+
+      // details level
+      // ui.item[0].parentElement.childNodes[0].children[0].textContent
+      let arr = [];
+      let table = ui.item[0].parentElement.childNodes;
+      table.forEach((row) => {
+        let r = [];
+        for (var key in row.children) {
+          if (row.children.hasOwnProperty(key)) {
+            // cell : console.log(row.children[key].textContent);
+            r.push(row.children[key].textContent);
+          }
+        }
+        arr.push(r);
+      });
+      //console.log($("#myTable tbody").sortable("toArray"), { key: "id" });
+      //console.log($("#myTable tbody").sortable("widget"));
+      //console.log($("#myTable tbody").sortable("serialize", { key: "key" }));
+      // rebuild toSend to match order
+      toSendReorder(arr);
     },
   })
   .disableSelection();
