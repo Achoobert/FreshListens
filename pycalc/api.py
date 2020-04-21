@@ -65,6 +65,18 @@ class Api(object):
             return get_drive_info()
         except Exception as e:
             return (str(e))
+    def addLibraryPath(self, newPath):
+        """Return list of drives"""
+        try:
+            return addLibraryPath(newPath)
+        except Exception as e:
+            return (str(e))
+    def getPathList(self):
+        """Return list of drives"""
+        try:
+            return getPathList()
+        except Exception as e:
+            return (str(e))
 
 def parse_port():
     return 4242

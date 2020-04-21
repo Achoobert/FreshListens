@@ -11,6 +11,32 @@ conn = sqlite3.connect('library.db')
 c = conn.cursor()
 # File manage
 # UI
+pathList = ['D:\schubert.dev\Library Manager\Audioก']
+
+def getFile():
+    # if not exist, create
+    # this sometimes causes errors if it isn't 'w+'
+    f= open("libraryPaths.txt","a")
+    # f.write("hey" + '\n')  
+    return
+
+def addLibraryPath(newLine):
+    # add path to file, ALSO update database
+    f = open('libraryPaths.txt', 'a')
+    f.write(str(newLine) + '\n')  # python will convert \n to os.linesep
+    libraryDatabaseInit()
+    return newLine
+
+def getPathList():
+    # have to make sure file exists or problems happen
+    # even if file exists MUST, it seems, still run this
+    getFile()
+    # open .txt file and read lines
+    f= open("libraryPaths.txt", "r")
+    lines = f.readlines()
+    for line in lines:
+        pathList.append(line)
+    return pathList
 
 def checkDatabase():  # Create database IF NOT EXISTS
     c.execute(
@@ -19,21 +45,22 @@ def checkDatabase():  # Create database IF NOT EXISTS
     c.execute('''CREATE TABLE IF NOT EXISTS history(history_id  INTEGER PRIMARY KEY, date text, user_id INTERGER, track_id INTERGER, FOREIGN KEY (user_id) REFERENCES users (user_id), FOREIGN KEY (track_id) REFERENCES library (track_id))''')
     conn.commit()
 
-
 def libraryDatabaseInit():  # check whole library location for new files (IF NOT EXISTS)
     # TODO user add ifnull/edit option library location on startup
-    library_path = str("D:\schubert.dev\Library Manager\Audioก")
+    # Update pathlist
+    getPathList()
     #print("checking Database")
     files = []
     # r=root, d=directories, f = files
-    for r, d, f in os.walk(library_path):
-        for fn in f:
-            files.append([
-                (os.path.splitext(fn)[0]),
-                os.path.join(r, fn),
-                "audio",
-                os.stat(os.path.join(r, fn)).st_size
-            ])
+    #for library_path in pathList:
+    #    for r, d, f in os.walk(library_path):
+    #        for fn in f:
+    #            files.append([
+    #                (os.path.splitext(fn)[0]),
+    #                os.path.join(r, fn),
+    #                "audio",
+    #                os.stat(os.path.join(r, fn)).st_size
+    #            ])
 
     for f in files:
         # print(f)

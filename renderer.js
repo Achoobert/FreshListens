@@ -19,9 +19,8 @@ let getDrives = document.querySelector("#getDrives");
 let viewDrives = document.querySelector("#viewDrives");
 let submitUser = document.querySelector("#submitUser");
 //
-// let addUser = document.querySelector("#addUser");
+
 let users = document.querySelector("#users");
-let header = document.querySelector("#header");
 let userHistory = document.querySelector("#userHistory");
 let sendFiles = document.querySelector("#sendFiles");
 let todo = document.querySelector("#todo");
@@ -30,17 +29,20 @@ let selected = document.querySelector("#selected");
 // Global selecting variables
 // TODO check, lets try cashing the library html element
 var libraryObj;
-async function asyncCallLibrary() {
-  if (libraryObj == undefined || libraryObj == null) {
-    console.log("calling");
-    const result = await getLibrary();
-    // const result = await resolveAfter2Seconds();
-    // console.log(result);
-    libraryObj = result;
-    return result;
-  } else {
-    return libraryObj;
-  }
+function asyncCallLibrary() {
+  return new Promise((resolve) => {
+    if (libraryObj == undefined || libraryObj == null) {
+      //console.log("calling");
+      getLibrary().then((result) => {
+        libraryObj = result;
+        resolve(result);
+      });
+      // const result = await resolveAfter2Seconds();
+      // console.log(result);
+    } else {
+      resolve(libraryObj);
+    }
+  });
 }
 
 var fileTypesSend = [];
@@ -73,6 +75,16 @@ echoButton.addEventListener("click", () => {
       echoButton.style.display = "none";
       console.log(res);
     }
+    debugger;
+    toSendViewRender();
+  });
+  // getPathList;
+  client.invoke("addLibraryPath", "hello/world/ok4.txt", (error, res) => {
+    if (error) {
+      console.error(error);
+    } else {
+      //console.log(res);
+    }
   });
 });
 echoButton.dispatchEvent(new Event("click"));
@@ -81,7 +93,6 @@ echoButton.dispatchEvent(new Event("click"));
 // Make a single page app
 let usersView = document.querySelector("#usersView");
 let userView = document.querySelector("#userView");
-let libraryView = document.querySelector("#libraryView");
 let toSendView = document.querySelector("#toSendView");
 
 sendFiles.addEventListener("click", () => {
@@ -116,7 +127,7 @@ let loadLibrary = document.querySelector("#loadLibrary");
 loadLibrary.addEventListener("click", () => {
   //usersView.style.display = "none";
   //userView.style.display = "none";
-  libraryView.style.display = "block";
+
   //library.textContent = "  Loading . . .";
   toSendViewRender();
   //client.invoke("getLibrary", (error, res) => {
@@ -126,11 +137,11 @@ loadLibrary.addEventListener("click", () => {
 //loadLibrary.dispatchEvent(new Event("click"));
 loadUsers.addEventListener("click", () => {
   // TODO clear the divs before displaying
-  usersView.style.display = "block";
-  userView.style.display = "none";
-  toSendView.style.display = "none";
+  //usersView.style.display = "block";
+  //userView.style.display = "none";
+  //toSendView.style.display = "none";
   todo.style.display = "none";
-  libraryView.style.display = "block";
+
   clearEle(users);
   async function asyncCallUsers() {
     const result = await getUsers();
@@ -139,15 +150,17 @@ loadUsers.addEventListener("click", () => {
   }
   //const result = await getUsers()
   asyncCallUsers();
-  toSendView.style.display = "block";
-  toSendView.appendChild(createSendTable(toSend));
+  //toSendView.style.display = "block";
+  //toSendView.appendChild(createSendTable(toSend));
 });
 loadUsers.dispatchEvent(new Event("click"));
 //
+let newUserData = document.querySelector("#newUserData");
 submitUser.addEventListener("click", () => {
-  console.log(newUser.location.value, newUser.userName.value);
-  addUser([newUser.userName.value, newUser.location.value]);
+  //console.log(newUserData.location.value, newUserData.userName.value);
+  addUser([newUserData.userName.value, newUserData.location.value]);
 });
+
 //submitUser.dispatchEvent(new Event("click"));
 
 //display, select-> display-display, select multiple->execute,
@@ -167,7 +180,7 @@ function getUsers() {
   });
 }
 function addUser(data) {
-  console.log(data);
+  //console.log(data);
   client.invoke("addUser", addUser.value, (error, res) => {
     if (error) {
       console.error(error);
@@ -181,22 +194,19 @@ function showUser(userData) {
   // update view
   usersView.style.display = "none";
   userView.style.display = "block";
-  header.textContent = userData[1];
   // get user's history
   displayHistory(userData[0]);
 }
 function getLibrary() {
   return new Promise((resolve) => {
-    setTimeout(() => {
-      client.invoke("getLibrary", (error, res) => {
-        if (error) {
-          console.error(error);
-        } else {
-          resolve(createLibraryTable(res));
-        }
-      });
-      //resolve("resolved");
-    }, 2000);
+    client.invoke("getLibrary", (error, res) => {
+      if (error) {
+        console.error(error);
+      } else {
+        resolve(createLibraryTable(res));
+      }
+    });
+    //resolve("resolved");
   });
 }
 
@@ -229,6 +239,9 @@ function toSendAdd(data) {
   }
   toSendViewRender();
 }
+/*
+ update global tosend to match how the user has reordered it
+*/
 function toSendReorder(arr) {
   // modify global object???
   // reorder as data
@@ -242,14 +255,39 @@ function toSendViewRender() {
   toSendView.style.display = "block";
   //toSendView.textContent = "Total size to send is " + toString(totalSendSize);
   //console.log(getLibrary());
-  Promise.all([
-    (async () =>
-      toSendView.appendChild(
-        sideBySide([await asyncCallLibrary(), createSendTable(toSend)])
-      ))(),
-    (async () =>
-      console.log(await asyncCallLibrary(), createSendTable(toSend)))(),
-  ]);
+
+  asyncCallLibrary().then((col1) => {
+    var col2 = createSendTable(toSend);
+    toSendView.appendChild(sideBySide([col1, col2]));
+    debugger;
+    $("#myTable tbody")
+      .sortable({
+        helper: fixHelperModified,
+        stop: function (e, ui) {
+          $("td.index", ui.item.parent()).each(function (i) {
+            $(this).html(i + 1);
+          });
+          $("input[type=text]", ui.item.parent()).each(function (i) {
+            $(this).val(i + 1);
+          });
+          let arr = [];
+          let table = ui.item[0].parentElement.childNodes;
+          table.forEach((row) => {
+            let r = [];
+            for (var key in row.children) {
+              if (row.children.hasOwnProperty(key)) {
+                // cell : console.log(row.children[key].textContent);
+                r.push(row.children[key].textContent);
+              }
+            }
+            arr.push(r);
+          });
+          toSendReorder(arr);
+        },
+      })
+      .disableSelection();
+  });
+
   //toSendView.appendChild(sideBySide([libraryObj, createSendTable(toSend)]));
 }
 
@@ -268,7 +306,7 @@ function sideBySide(tables) {
   let row = document.createElement("row");
   row.setAttribute("class", "row");
   tables.forEach(function (table) {
-    console.log(tables);
+    //console.log(tables);
     row.appendChild(table);
   });
   container.appendChild(row);
@@ -294,7 +332,7 @@ function createLibraryTable(tableData) {
   // table formatting
   var table = document.createElement("table");
   table.setAttribute("class", "table table-hover");
-  table.setAttribute("id", "myTable");
+  table.setAttribute("id", "myLibTable");
   // make a non-sortable tableHead and attach it to the table
   function createHeader() {
     var tableHead = document.createElement("thead");
@@ -504,6 +542,35 @@ function createHistoryTable(tableData) {
   table.appendChild(tableBody);
   return table;
 }
+
+let newLibraryLoc = document.querySelector("#newLibraryLoc");
+let pickLibraryLocation = document.querySelector("#pickLibraryLocation");
+document.getElementById("newLibraryLoc").addEventListener("click", () => {
+  console.log(window.location.href);
+  window.postMessage({
+    type: "select-dirs",
+  });
+});
+newLibraryLoc.dispatchEvent(new Event("click"));
+let submitLibrary = document.querySelector("#submitLibrary");
+submitLibrary.addEventListener("click", () => {
+  console.log(pickLibraryLocation);
+  console.log(pickLibraryLocation.newLibraryLoc.value);
+  //
+  // addNewPath(path)
+});
+function addNewPath(newPath) {
+  console.log(newPath);
+  client.invoke("addLibraryPath", newPath, (error, res) => {
+    if (error) {
+      console.error(error);
+    } else {
+      console.log(res);
+      //viewDrives.textContent(res);
+    }
+  });
+}
+
 function clearEle(elementID) {
   elementID.innerHTML = "";
 }
@@ -535,42 +602,3 @@ var fixHelperModified = function (e, tr) {
       $(this).val(i + 1);
     });
 };*/
-
-$("#myTable tbody")
-  .sortable({
-    helper: fixHelperModified,
-    stop: function (e, ui) {
-      $("td.index", ui.item.parent()).each(function (i) {
-        $(this).html(i + 1);
-      });
-      $("input[type=text]", ui.item.parent()).each(function (i) {
-        $(this).val(i + 1);
-      });
-      // Parent
-      // ui.item[0].parentElement
-
-      // currently selected item, cycle children gives other details
-      // ui.item[0].children[0].childNodes[0]
-
-      // details level
-      // ui.item[0].parentElement.childNodes[0].children[0].textContent
-      let arr = [];
-      let table = ui.item[0].parentElement.childNodes;
-      table.forEach((row) => {
-        let r = [];
-        for (var key in row.children) {
-          if (row.children.hasOwnProperty(key)) {
-            // cell : console.log(row.children[key].textContent);
-            r.push(row.children[key].textContent);
-          }
-        }
-        arr.push(r);
-      });
-      //console.log($("#myTable tbody").sortable("toArray"), { key: "id" });
-      //console.log($("#myTable tbody").sortable("widget"));
-      //console.log($("#myTable tbody").sortable("serialize", { key: "key" }));
-      // rebuild toSend to match order
-      toSendReorder(arr);
-    },
-  })
-  .disableSelection();
