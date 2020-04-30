@@ -18,35 +18,34 @@ let loadUsers = document.querySelector("#loadUsers");
 let getDrives = document.querySelector("#getDrives");
 let viewDrives = document.querySelector("#viewDrives");
 let submitUser = document.querySelector("#submitUser");
-//
-
 let users = document.querySelector("#users");
 let userHistory = document.querySelector("#userHistory");
 let sendFiles = document.querySelector("#sendFiles");
 let todo = document.querySelector("#todo");
 let selected = document.querySelector("#selected");
 
-// Global selecting variables
-// TODO check, lets try cashing the library html element
+// Global variables
+// view variables
+// Cashing the library html element
 var libraryObj;
+
+/**
+ * @function asyncCallLibrary
+ *  update/ init the library element
+ * @update libraryObj
+ * @return promise resolve {htmlObject}
+ */
 function asyncCallLibrary() {
   return new Promise((resolve) => {
-    if (libraryObj == undefined || libraryObj == null) {
-      //console.log("calling");
-      getLibrary().then((result) => {
-        libraryObj = result;
-        resolve(result);
-      });
-      // const result = await resolveAfter2Seconds();
-      // console.log(result);
-    } else {
-      resolve(libraryObj);
-    }
+    getLibrary().then((result) => {
+      libraryObj = result;
+      resolve(result);
+    });
   });
 }
 
-var fileTypesSend = [];
-var totalSendSize = 0;
+// user selection variables
+// If use push, important to initialize
 var currentUser = [1, "John", "city"];
 var currentHistory = [];
 // currently selected tracks to send to drive
@@ -55,12 +54,26 @@ var toSend = [
   [22, "argerr", "audio", 38903],
   [43, "songg", "audio", 99303],
 ];
+var fileTypesSend = [];
+var totalSendSize = 0;
 // selected drive
 var selectedDrive = ["D:", "ThumbDrive"];
 
-// display selected user and drive
+/**
+ * @function updateSelected
+ *  display selected user and drive
+ * @update DOM : selected.textContent
+ */
 function updateSelected() {
-  selected.textContent = currentUser[1] + "  " + selectedDrive[0];
+  selected.textContent =
+    "user: " +
+    currentUser[1] +
+    "  Drive: " +
+    selectedDrive[0] +
+    "  Total send size: " +
+    totalSendSize +
+    "  " +
+    fileTypesSend;
 }
 
 ///// debugging stuff, delete later
@@ -75,15 +88,14 @@ echoButton.addEventListener("click", () => {
       echoButton.style.display = "none";
       console.log(res);
     }
-    debugger;
     toSendViewRender();
   });
   // getPathList;
-  client.invoke("addLibraryPath", "hello/world/ok4.txt", (error, res) => {
+  client.invoke("addLibraryPath", "hello/world/", (error, res) => {
     if (error) {
       console.error(error);
     } else {
-      //console.log(res);
+      console.log(res);
     }
   });
 });
@@ -111,6 +123,7 @@ sendFiles.addEventListener("click", () => {
   );
 });
 //sendFiles.dispatchEvent(new Event("click"));
+
 getDrives.addEventListener("click", () => {
   client.invoke("getDrives", (error, res) => {
     if (error) {
@@ -136,22 +149,8 @@ loadLibrary.addEventListener("click", () => {
 });
 //loadLibrary.dispatchEvent(new Event("click"));
 loadUsers.addEventListener("click", () => {
-  // TODO clear the divs before displaying
-  //usersView.style.display = "block";
-  //userView.style.display = "none";
-  //toSendView.style.display = "none";
   todo.style.display = "none";
-
-  clearEle(users);
-  async function asyncCallUsers() {
-    const result = await getUsers();
-    users.appendChild(result);
-    return result;
-  }
-  //const result = await getUsers()
-  asyncCallUsers();
-  //toSendView.style.display = "block";
-  //toSendView.appendChild(createSendTable(toSend));
+  displayUserList();
 });
 loadUsers.dispatchEvent(new Event("click"));
 //
@@ -159,44 +158,38 @@ let newUserData = document.querySelector("#newUserData");
 submitUser.addEventListener("click", () => {
   //console.log(newUserData.location.value, newUserData.userName.value);
   addUser([newUserData.userName.value, newUserData.location.value]);
+  //TODO update users list
 });
-
 //submitUser.dispatchEvent(new Event("click"));
 
 //display, select-> display-display, select multiple->execute,
 // `divName`.appendChild(i()) -> getI -> createITable
+/**
+ * @function getUsers
+ *  Call the python api, get user array
+ *      this returns [[id, user, location]]
+ *          send data to be made into HTML user table
+ * @returns promise resolve {HTML userTable element}
+ */
 function getUsers() {
   return new Promise((resolve) => {
-    setTimeout(() => {
-      client.invoke("getUsers", (error, res) => {
-        if (error) {
-          console.error(error);
-        } else {
-          resolve(createUserTable(res));
-        }
-      });
-      //resolve("resolved");
-    }, 2000);
+    client.invoke("getUsers", (error, res) => {
+      if (error) {
+        console.error(error);
+        resolve(error);
+      } else {
+        resolve(createUserTable(res));
+      }
+    });
   });
 }
-function addUser(data) {
-  //console.log(data);
-  client.invoke("addUser", addUser.value, (error, res) => {
-    if (error) {
-      console.error(error);
-    } else {
-      // update the user list
-      getUsers();
-    }
-  });
-}
-function showUser(userData) {
-  // update view
-  usersView.style.display = "none";
-  userView.style.display = "block";
-  // get user's history
-  displayHistory(userData[0]);
-}
+/**
+ * @function getLibrary
+ *  Call the python api, get library array
+ *      this returns [[id, track name, location, type, size]]
+ *          send data to be made into HTML user table
+ * @returns promise resolve {HTML LibraryTable element}
+ */
 function getLibrary() {
   return new Promise((resolve) => {
     client.invoke("getLibrary", (error, res) => {
@@ -206,10 +199,32 @@ function getLibrary() {
         resolve(createLibraryTable(res));
       }
     });
-    //resolve("resolved");
+  });
+}
+/**
+ * @function addUser
+ *  Send to the python api
+ * @param array [user, location]
+ * @update call displayUserList()
+ */
+function addUser(data) {
+  //console.log(data);
+  client.invoke("addUser", addUser.value, (error, res) => {
+    if (error) {
+      console.error(error);
+    } else {
+      // update the user list
+      displayUserList();
+    }
   });
 }
 
+/**
+ * @function displayHistory
+ *  update/ init the history element
+ * @param int user id
+ * @update DOM: userHistory.appendChild()
+ */
 function displayHistory(userId) {
   client.invoke("getHistory", userId, (error, res) => {
     if (error) {
@@ -223,33 +238,63 @@ function displayHistory(userId) {
         userHistory.textContent = "No User History";
       } else {
         currentHistory = res;
-        //userHistory.textContent = res;
         userHistory.appendChild(createHistoryTable(res));
       }
     }
   });
 }
+/**
+ * @function displayUserList
+ *  update/ init the library element
+ * @update DOM: 'users'
+ */
+function displayUserList() {
+  usersView.style.display = "block";
+  //userView.style.display = "none";
+  clearEle(users);
+  async function asyncCallUsers() {
+    const result = await getUsers();
+    users.appendChild(result);
+    return result;
+  }
+  asyncCallUsers();
+}
+/**
+ * @function toSendAdd
+ *  update/ init the library element
+ * @param array [id, name, type, size]
+ * @update toSend variable
+ * @update "#myTable tbody" with new row
+ */
 function toSendAdd(data) {
-  // add to global object
   toSend.push(data);
-  //console.log(toSend);
   totalSendSize = data[3] + totalSendSize;
   if (fileTypesSend.includes(data[2])) {
     fileTypesSend.append(data[2]);
   }
-  toSendViewRender();
+  // make file row turns array into valid html tr row
+  $("#myTable tbody").append(makeFileRow(data));
 }
-/*
- update global tosend to match how the user has reordered it
-*/
-function toSendReorder(arr) {
-  // modify global object???
-  // reorder as data
-  console.log(toSend);
-  console.log(arr);
+
+/**
+ * @function toSendUpdate
+ *  update global toSend, match how the user has changed it
+ * @param array [[1,file],[2,file2]]
+ * @update toSend
+ */
+function toSendUpdate(arr) {
+  // modify global object
   toSend = arr;
 }
+
 // clear, show, and Update view
+/**
+ * @function asyncCallLibrary
+ *  update/ init the library element
+ * @param {function} done  node style callback(err)
+ * @update libraryObj
+ * @return promise resolve {htmlObject}
+ */
 function toSendViewRender() {
   clearEle(toSendView);
   toSendView.style.display = "block";
@@ -259,7 +304,6 @@ function toSendViewRender() {
   asyncCallLibrary().then((col1) => {
     var col2 = createSendTable(toSend);
     toSendView.appendChild(sideBySide([col1, col2]));
-    debugger;
     $("#myTable tbody")
       .sortable({
         helper: fixHelperModified,
@@ -282,7 +326,7 @@ function toSendViewRender() {
             }
             arr.push(r);
           });
-          toSendReorder(arr);
+          toSendUpdate(arr);
         },
       })
       .disableSelection();
@@ -406,6 +450,21 @@ function createTable(tableData) {
   table.appendChild(tableBody);
   return table;
 }
+function makeFileRow(rowData) {
+  let row = document.createElement("tr");
+  row.setAttribute("id", rowData[0]);
+  row.setAttribute("key", rowData);
+  row.setAttribute("class", "ui-sortable-handle");
+  rowData.forEach(function (cellData) {
+    if (cellData != rowData[3]) {
+      var cell = document.createElement("td");
+      cell.appendChild(document.createTextNode(cellData));
+      //append to form element that you want .
+      row.appendChild(cell);
+    }
+  });
+  return row;
+}
 function createSendTable(tableData) {
   // formatting box
   var outerBox = document.createElement("outerBox");
@@ -441,27 +500,7 @@ function createSendTable(tableData) {
   tableBody.setAttribute("class", "ui-sortable");
   //create body
   tableData.forEach(function (rowData) {
-    let row = document.createElement("tr");
-    var key = document.createElement("key");
-    // give it tag for tracking ID after drag
-    /*key.setAttribute("type", "hidden");
-    key.setAttribute("name", "fileID");
-    key.setAttribute("value", rowData);
-    row.appendChild(key);*/
-    row.setAttribute("id", rowData[0]);
-    row.setAttribute("key", rowData);
-    row.setAttribute("class", "ui-sortable-handle");
-    rowData.forEach(function (cellData) {
-      //TODO  force vertical??
-      // attach display cells
-      if (cellData != rowData[3]) {
-        var cell = document.createElement("td");
-        cell.appendChild(document.createTextNode(cellData));
-        //append to form element that you want .
-        row.appendChild(cell);
-      }
-    });
-    tableBody.appendChild(row);
+    tableBody.appendChild(makeFileRow(rowData));
   });
   table.appendChild(tableBody);
   outerBox.appendChild(table);
@@ -508,7 +547,8 @@ function createUserTable(tableData) {
         // alert data ID
         currentUser = rData;
         updateSelected();
-        showUser(rData);
+        // display selection
+        displayHistory(rData[0]);
         usersView.style.display = "none";
       });
       row.appendChild(cell);
