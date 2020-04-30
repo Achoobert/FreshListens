@@ -1,4 +1,5 @@
 const electron = require("electron");
+const { dialog, ipcMain } = require("electron");
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 const path = require("path");
@@ -14,12 +15,13 @@ const createWindow = () => {
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
-      //nodeIntegration: false,
-      enableRemoteModule: false,
-      //contextIsolation: true,
-      sandbox: false,
+      //nodeIntegration: true,
+      enableRemoteModule: true,
+      //contextIsolation: false,
+      //sandbox: false,
     },
   });
+
   mainWindow.loadURL(
     require("url").format({
       pathname: path.join(__dirname, "index.html"),
@@ -28,6 +30,8 @@ const createWindow = () => {
       sandbox: false,
     })
   );
+
+  //cannot .loadFile("index.html"); because version is too old
   mainWindow.webContents.openDevTools();
   mainWindow.on("closed", () => {
     mainWindow = null;
@@ -53,6 +57,9 @@ const selectPort = () => {
   pyPort = 4242;
   return pyPort;
 };
+
+// In this file you can include the rest of your app's specific main process
+// code. You can also put them in separate files and require them here.
 
 const createPyProc = () => {
   let port = "" + selectPort();

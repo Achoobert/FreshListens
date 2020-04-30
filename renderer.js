@@ -23,6 +23,7 @@ let userHistory = document.querySelector("#userHistory");
 let sendFiles = document.querySelector("#sendFiles");
 let todo = document.querySelector("#todo");
 let selected = document.querySelector("#selected");
+let toSendSize = document.querySelector("#toSendSize");
 
 // Global variables
 // view variables
@@ -56,6 +57,28 @@ var toSend = [
 ];
 var fileTypesSend = [];
 var totalSendSize = 0;
+/**
+ * @function displaySendSize
+ *  convert stored file size total to appropriate unit
+ * @return string "# xB"
+ */
+function displaySendSize() {
+  let bytes = totalSendSize;
+  if (bytes >= 1073741824) {
+    bytes = (bytes / 1073741824).toFixed(2) + " GB";
+  } else if (bytes >= 1048576) {
+    bytes = (bytes / 1048576).toFixed(2) + " MB";
+  } else if (bytes >= 1024) {
+    bytes = (bytes / 1024).toFixed(2) + " KB";
+  } else if (bytes > 1) {
+    bytes = bytes + " bytes";
+  } else if (bytes == 1) {
+    bytes = bytes + " byte";
+  } else {
+    bytes = "0 bytes";
+  }
+  return bytes;
+}
 // selected drive
 var selectedDrive = ["D:", "ThumbDrive"];
 
@@ -80,6 +103,8 @@ function updateSelected() {
 let echoButton = document.querySelector("#echoButton");
 
 echoButton.addEventListener("click", () => {
+  libraryDatabaseInit();
+
   client.invoke("echo", "api.py -> app.py working", (error, res) => {
     echoButton.style.display = "block";
     if (error) {
@@ -90,14 +115,6 @@ echoButton.addEventListener("click", () => {
     }
     toSendViewRender();
   });
-  // getPathList;
-  client.invoke("addLibraryPath", "hello/world/", (error, res) => {
-    if (error) {
-      console.error(error);
-    } else {
-      console.log(res);
-    }
-  });
 });
 echoButton.dispatchEvent(new Event("click"));
 ///// end debug
@@ -106,6 +123,27 @@ echoButton.dispatchEvent(new Event("click"));
 let usersView = document.querySelector("#usersView");
 let userView = document.querySelector("#userView");
 let toSendView = document.querySelector("#toSendView");
+let newUserData = document.querySelector("#newUserData");
+
+/**
+ * @function libraryDatabaseInit
+ *  Tell python to re-scan all library directories
+ * @update SQLite library
+ */
+function libraryDatabaseInit() {
+  return new Promise((resolve) => {
+    client.invoke("libraryDatabaseInit", (error, res) => {
+      //debugger;
+      if (error) {
+        console.error(error);
+        resolve;
+      } else {
+        console.log("Library checked" + toString(res));
+        resolve;
+      }
+    });
+  });
+}
 
 sendFiles.addEventListener("click", () => {
   //console.log([toSend, currentUser[0], selectedDrive[0]]);
@@ -138,14 +176,8 @@ getDrives.dispatchEvent(new Event("click"));
 
 let loadLibrary = document.querySelector("#loadLibrary");
 loadLibrary.addEventListener("click", () => {
-  //usersView.style.display = "none";
-  //userView.style.display = "none";
-
-  //library.textContent = "  Loading . . .";
+  console.log("click load libray");
   toSendViewRender();
-  //client.invoke("getLibrary", (error, res) => {
-  //  getLibrary();
-  //});
 });
 //loadLibrary.dispatchEvent(new Event("click"));
 loadUsers.addEventListener("click", () => {
@@ -154,7 +186,7 @@ loadUsers.addEventListener("click", () => {
 });
 loadUsers.dispatchEvent(new Event("click"));
 //
-let newUserData = document.querySelector("#newUserData");
+
 submitUser.addEventListener("click", () => {
   //console.log(newUserData.location.value, newUserData.userName.value);
   addUser([newUserData.userName.value, newUserData.location.value]);
@@ -192,6 +224,7 @@ function getUsers() {
  */
 function getLibrary() {
   return new Promise((resolve) => {
+    //debugger;
     client.invoke("getLibrary", (error, res) => {
       if (error) {
         console.error(error);
@@ -201,6 +234,7 @@ function getLibrary() {
     });
   });
 }
+
 /**
  * @function addUser
  *  Send to the python api
@@ -243,6 +277,7 @@ function displayHistory(userId) {
     }
   });
 }
+
 /**
  * @function displayUserList
  *  update/ init the library element
@@ -254,11 +289,13 @@ function displayUserList() {
   clearEle(users);
   async function asyncCallUsers() {
     const result = await getUsers();
+    // TODO what if this is blank?
     users.appendChild(result);
     return result;
   }
   asyncCallUsers();
 }
+
 /**
  * @function toSendAdd
  *  update/ init the library element
@@ -269,6 +306,7 @@ function displayUserList() {
 function toSendAdd(data) {
   toSend.push(data);
   totalSendSize = data[3] + totalSendSize;
+  toSendSize.textContent = "Total size to send is " + displaySendSize();
   if (fileTypesSend.includes(data[2])) {
     fileTypesSend.append(data[2]);
   }
@@ -289,16 +327,13 @@ function toSendUpdate(arr) {
 
 // clear, show, and Update view
 /**
- * @function asyncCallLibrary
- *  update/ init the library element
- * @param {function} done  node style callback(err)
- * @update libraryObj
- * @return promise resolve {htmlObject}
+ * @function toSendViewRender
+ *  update/ init the toSendView row element
+ * @update dom clear>block display>append table
  */
 function toSendViewRender() {
   clearEle(toSendView);
   toSendView.style.display = "block";
-  //toSendView.textContent = "Total size to send is " + toString(totalSendSize);
   //console.log(getLibrary());
 
   asyncCallLibrary().then((col1) => {
@@ -450,6 +485,9 @@ function createTable(tableData) {
   table.appendChild(tableBody);
   return table;
 }
+/*
+  Takes a 1 dimensional array and returns a draggable row
+*/
 function makeFileRow(rowData) {
   let row = document.createElement("tr");
   row.setAttribute("id", rowData[0]);
@@ -537,9 +575,6 @@ function createUserTable(tableData) {
     var row = document.createElement("tr");
     let rData = rowData;
     rowData.forEach(function (cellData) {
-      // This may cause bug later
-      // TODO clever solution
-      // filtering out extra location via length. very dumb
       var cell = document.createElement("td");
       cell.appendChild(document.createTextNode(cellData));
       // Click listener for row
@@ -583,18 +618,43 @@ function createHistoryTable(tableData) {
   return table;
 }
 
-let newLibraryLoc = document.querySelector("#newLibraryLoc");
-let pickLibraryLocation = document.querySelector("#pickLibraryLocation");
-document.getElementById("newLibraryLoc").addEventListener("click", () => {
-  console.log(window.location.href);
-  window.postMessage({
-    type: "select-dirs",
-  });
+const { ipcRenderer } = require("electron");
+
+const { dialog } = require("electron").remote;
+
+document.getElementById("dirs").addEventListener("click", () => {
+  addLibraryPath(dialog.showOpenDialog({ properties: ["openDirectory"] }));
 });
-newLibraryLoc.dispatchEvent(new Event("click"));
+
+function addLibraryPath(path) {
+  // getPathList;
+  console.log(path);
+  //debugger;
+  client.invoke("addLibraryPath", path, (error, res) => {
+    debugger;
+    if (error) {
+      console.error(error);
+    } else {
+      debugger;
+      console.log(res);
+      // TODO make these asyncronus
+      // reScan the library database, then display it
+      // it IS getting scanned, but update isn't working
+      // TODO convert init into a promise
+      clearEle(toSendView);
+      libraryDatabaseInit().then(() => {
+        toSendViewRender();
+      });
+      // remove add library button
+      pickLibraryLocation.style.display = "none";
+    }
+  });
+}
+
 let submitLibrary = document.querySelector("#submitLibrary");
 submitLibrary.addEventListener("click", () => {
   console.log(pickLibraryLocation);
+  console.log(pickLibraryLocation.dirs.value);
   console.log(pickLibraryLocation.newLibraryLoc.value);
   //
   // addNewPath(path)

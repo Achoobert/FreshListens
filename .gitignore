@@ -9,3 +9,5 @@ pycalcdist/
 pycalc/__pycache__/app.cpython-37.pyc
 
 *.db
+
+libraryPaths.txt

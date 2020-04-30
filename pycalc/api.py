@@ -52,7 +52,7 @@ class Api(object):
             # toSend, currentUser, selectedDrive
             return sendFiles(dataArr)
         except Exception as e:
-            return (e)
+            return (str(e))
     def addUser(self,userData):
         """based on the input text, return the int result"""
         try:
@@ -77,6 +77,13 @@ class Api(object):
             return getPathList()
         except Exception as e:
             return (str(e))
+    def libraryDatabaseInit(self):
+        """Return list of drives"""
+        try:
+            return libraryDatabaseInit()
+        except Exception as e:
+            return (str(e))
+            
 
 def parse_port():
     return 4242

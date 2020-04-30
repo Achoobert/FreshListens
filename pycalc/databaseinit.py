@@ -3,6 +3,15 @@ import sqlite3
 conn = sqlite3.connect('library.db')
 c = conn.cursor()
 
+# Create Library Location table
+c.execute('''CREATE TABLE location IF NOT EXISTS(
+			loc_id INTEGER PRIMARY KEY,  
+			location text 
+			)''')
+# Insert a row of data
+# user name, village LOCATION name
+# c.execute("INSERT INTO users VALUES ('John Smith','Village 1')")
+
 # Create users table
 c.execute('''CREATE TABLE users IF NOT EXISTS(
 			user_id INTEGER PRIMARY KEY, 

@@ -25,6 +25,7 @@
       side-by-side view 
       library - to Send Tracks
     -->
+    <div id="toSendSize">No data to be sent</div>
     <div id="toSendView">No data to be sent</div>
     <!--
       Start send
@@ -146,7 +147,18 @@
     <!--
       If library isn't selected
     -->
+
     <form id="pickLibraryLocation">
+      <div class="form-group">
+        <label for="outputDir">Output Directory</label>
+        <input
+          type="file"
+          id="dirs"
+          class="btn btn-primary btn-fill"
+          webkitdirectory=""
+          directory=""
+        />
+      </div>
       <div>
         <label for="file">Locate Library</label>
         <!--<input

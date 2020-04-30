@@ -123,7 +123,10 @@ def sendFiles(dataArr):
             logFileReceived(currentUser[0], item[0])
             processedFiles.append([source, destination])
         except Exception as e:
-            return e
+            if hasattr(e, 'message'):
+                return(getattr(e, 'message', str(e)))
+            else:
+                return(e)
             
     return processedFiles
 
@@ -183,10 +186,7 @@ def reviewSentTracks(userID):
 # Create database IF NOT EXISTS
 checkDatabase()
 
-# check whole library location for new files (IF NOT EXISTS)
-libraryDatabaseInit()
-
-
+# TODO make this NOT break if table is empty
 def getUsers():
     arr = []
     for row in c.execute('SELECT * FROM users ORDER BY user_id'):
