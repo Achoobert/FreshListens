@@ -1,7 +1,7 @@
 from __future__ import print_function
 # import 'logic' files here here
 # from calc import calc as real_calc
-from app import *
+import app
 import sys
 import zerorpc
 
@@ -19,68 +19,71 @@ class Api(object):
     def echo(self, text):
         """send any text to app.py to get echoed"""
         try:
-            return echo(text)
+            return app.echo(text + " .. version")
         except Exception as e:
-            return (str(e))
+            if hasattr(e, 'message'):
+                return("api works" + (getattr(e, 'message', str(e))))
+            else:
+                return(e)
     def getUsers(self):
         """based on the input text, return the int result"""
         try:
-            return getUsers()
+            return app.getUsers()
         except Exception as e:
             return (str(e))
     def getHistory(self, userID):
         """based on the input text, return the int result"""
         try:
-            return getHistory(userID)
+            return app.getHistory(userID)
         except Exception as e:
             return (str(e))
     def getDrives(self):
         """based on the input text, return the int result"""
         try:
-            return getDrives()
+            return app.getDrives()
         except Exception as e:
             return (str(e))
     def getLibrary(self):
         """based on the input text, return the int result"""
         try:
-            return getLibrary()
+            return app.getLibrary()
         except Exception as e:
             return (str(e))
     def sendFiles(self, dataArr):        
         """based on the input text, return the int result"""
         try:
             # toSend, currentUser, selectedDrive
-            return sendFiles(dataArr)
+            return app.sendFiles(dataArr)
         except Exception as e:
             return (str(e))
     def addUser(self,userData):
         """based on the input text, return the int result"""
         try:
-            return addUser(userData)
+            return app.addUser(userData)
         except Exception as e:
             return "error not inserted"
     def get_drive_info(self):
         """Return list of drives"""
         try:
-            return get_drive_info()
+            return app.get_drive_info()
         except Exception as e:
             return (str(e))
     def addLibraryPath(self, newPath):
         """Return list of drives"""
         try:
-            return addLibraryPath(newPath)
+            return app.addLibraryPath(newPath)
         except Exception as e:
             return (str(e))
     def getPathList(self):
         """Return list of drives"""
         try:
-            return getPathList()
+            return app.getPathList()
         except Exception as e:
             return (str(e))
     def libraryDatabaseInit(self):
         """Return list of drives"""
         try:
-            return libraryDatabaseInit()
+            return app.libraryDatabaseInit()
         except Exception as e:
             return (str(e))
             
@@ -94,6 +97,8 @@ def main():
     s = zerorpc.Server(Api())
     s.bind(addr)
     print('start running on {}'.format(addr))
+    print (Api.echo({}, "only prints if app is working "))
+    app.checkDatabase()
     s.run()
 
 if __name__ == '__main__':

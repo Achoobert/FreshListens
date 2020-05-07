@@ -36,7 +36,8 @@ var libraryObj;
  * @update libraryObj
  * @return promise resolve {htmlObject}
  */
-function asyncCallLibrary() {
+async function asyncCallLibrary() {
+  // only run this if new paths have been added
   return new Promise((resolve) => {
     getLibrary().then((result) => {
       libraryObj = result;
@@ -58,12 +59,11 @@ var toSend = [
 var fileTypesSend = [];
 var totalSendSize = 0;
 /**
- * @function displaySendSize
- *  convert stored file size total to appropriate unit
+ * @function bytesConvert
+ *  convert bytes number to appropriate unit
  * @return string "# xB"
  */
-function displaySendSize() {
-  let bytes = totalSendSize;
+function bytesConvert(bytes) {
   if (bytes >= 1073741824) {
     bytes = (bytes / 1073741824).toFixed(2) + " GB";
   } else if (bytes >= 1048576) {
@@ -103,7 +103,7 @@ function updateSelected() {
 let echoButton = document.querySelector("#echoButton");
 
 echoButton.addEventListener("click", () => {
-  libraryDatabaseInit();
+  //libraryDatabaseInit();
 
   client.invoke("echo", "api.py -> app.py working", (error, res) => {
     echoButton.style.display = "block";
@@ -133,7 +133,6 @@ let newUserData = document.querySelector("#newUserData");
 function libraryDatabaseInit() {
   return new Promise((resolve) => {
     client.invoke("libraryDatabaseInit", (error, res) => {
-      //debugger;
       if (error) {
         console.error(error);
         resolve;
@@ -223,8 +222,9 @@ function getUsers() {
  * @returns promise resolve {HTML LibraryTable element}
  */
 function getLibrary() {
+  //await libraryDatabaseInit();
   return new Promise((resolve) => {
-    //debugger;
+    // need to initialize
     client.invoke("getLibrary", (error, res) => {
       if (error) {
         console.error(error);
@@ -306,7 +306,8 @@ function displayUserList() {
 function toSendAdd(data) {
   toSend.push(data);
   totalSendSize = data[3] + totalSendSize;
-  toSendSize.textContent = "Total size to send is " + displaySendSize();
+  toSendSize.textContent =
+    "Total size to send is " + bytesConvert(totalSendSize);
   if (fileTypesSend.includes(data[2])) {
     fileTypesSend.append(data[2]);
   }
@@ -438,7 +439,12 @@ function createLibraryTable(tableData) {
   tableData.forEach(function (rowData) {
     var row = document.createElement("tr");
     rowData.forEach(function (cellData) {
+      // hide ID
       if (cellData != rowData[0]) {
+        // convert the size to readable amount
+        if (typeof cellData === "number") {
+          cellData = bytesConvert(cellData);
+        }
         var cell = document.createElement("td");
         cell.appendChild(document.createTextNode(cellData));
         cell.addEventListener("click", function () {
@@ -629,44 +635,22 @@ document.getElementById("dirs").addEventListener("click", () => {
 function addLibraryPath(path) {
   // getPathList;
   console.log(path);
-  //debugger;
   client.invoke("addLibraryPath", path, (error, res) => {
-    debugger;
     if (error) {
       console.error(error);
     } else {
-      debugger;
       console.log(res);
       // TODO make these asyncronus
       // reScan the library database, then display it
       // it IS getting scanned, but update isn't working
       // TODO convert init into a promise
       clearEle(toSendView);
-      libraryDatabaseInit().then(() => {
-        toSendViewRender();
+      toSendViewRender().then(() => {
+        // this action, of course, runs perfectly
+        pickLibraryLocation.style.display = "none";
       });
-      // remove add library button
-      pickLibraryLocation.style.display = "none";
-    }
-  });
-}
 
-let submitLibrary = document.querySelector("#submitLibrary");
-submitLibrary.addEventListener("click", () => {
-  console.log(pickLibraryLocation);
-  console.log(pickLibraryLocation.dirs.value);
-  console.log(pickLibraryLocation.newLibraryLoc.value);
-  //
-  // addNewPath(path)
-});
-function addNewPath(newPath) {
-  console.log(newPath);
-  client.invoke("addLibraryPath", newPath, (error, res) => {
-    if (error) {
-      console.error(error);
-    } else {
-      console.log(res);
-      //viewDrives.textContent(res);
+      // remove add library button
     }
   });
 }

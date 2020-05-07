@@ -18,6 +18,15 @@
 
     <title>Fresh Listens</title>
   </head>
+
+  <div id="navBar">
+    <!-- debug -->
+    <button id="echoButton">Retry Echo</button>
+    <button id="loadLibrary">Add Library Location</button>
+    <button id="loadUsers">Select User</button>
+    <button id="getDrives">Select Drive</button>
+  </div>
+
   <body id="body">
     <!-- displays selected user and drive -->
     <h6 id="selected"></h6>
@@ -150,7 +159,7 @@
 
     <form id="pickLibraryLocation">
       <div class="form-group">
-        <label for="outputDir">Output Directory</label>
+        <label for="outputDir">Add Library Directory</label>
         <input
           type="file"
           id="dirs"
@@ -172,16 +181,10 @@
         />-->
         <input type="file" id="newLibraryLoc" />
       </div>
-      <div>
-        <input id="submitLibrary" type="button" value="Submit" />
-      </div>
     </form>
 
     <br />
-    <!--
-      debug 
-    -->
-    <button id="echoButton">echo</button>
+
     <!--
       Select a drive
     -->
@@ -190,9 +193,7 @@
     </div>
     <p></p>
     <br /><br /><br />
-    <button id="getDrives">Drives</button>
-    <button id="loadLibrary">Library</button>
-    <button id="loadUsers">Users</button>
+
     <div id="usersView">
       <form id="newUserData">
         <label for="userName">Name:</label><br />

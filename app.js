@@ -61,12 +61,43 @@ const selectPort = () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
+const PY_DIST_FOLDER = "pycalcdist";
+const PY_FOLDER = "pycalc";
+const PY_MODULE = "api"; // without .py suffix
+
+const guessPackaged = () => {
+  const fullPath = path.join(__dirname, PY_DIST_FOLDER);
+  return require("fs").existsSync(fullPath);
+};
+
+const getScriptPath = () => {
+  if (!guessPackaged()) {
+    console.log(path.join(__dirname, PY_DIST_FOLDER, PY_MODULE, PY_MODULE));
+    return path.join(__dirname, PY_FOLDER, PY_MODULE + ".py");
+  }
+  if (process.platform === "win32") {
+    console.log(path.join(__dirname, PY_DIST_FOLDER, PY_MODULE, PY_MODULE));
+    return path.join(__dirname, PY_DIST_FOLDER, PY_MODULE, PY_MODULE + ".exe");
+  }
+  console.log(path.join(__dirname, PY_DIST_FOLDER, PY_MODULE, PY_MODULE));
+  return path.join(__dirname, PY_DIST_FOLDER, PY_MODULE, PY_MODULE);
+};
+
+// main.js
+// the improved version
 const createPyProc = () => {
+  let script = getScriptPath();
   let port = "" + selectPort();
-  let script = path.join(__dirname, "pycalc", "api.py");
-  pyProc = require("child_process").spawn("python", [script, port]);
+
+  if (guessPackaged()) {
+    pyProc = require("child_process").execFile(script, [port]);
+  } else {
+    pyProc = require("child_process").spawn("python", [script, port]);
+  }
+
   if (pyProc != null) {
-    console.log("child process success");
+    //console.log(pyProc)
+    console.log("child process success on port " + port);
   }
 };
 

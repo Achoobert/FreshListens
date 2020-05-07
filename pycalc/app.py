@@ -25,6 +25,9 @@ def checkDatabase():  # Create database IF NOT EXISTS
     c.execute('''CREATE TABLE IF NOT EXISTS location(loc_id INTEGER PRIMARY KEY, location text )''')
     conn.commit()
 
+# Create database IF NOT EXISTS
+checkDatabase()
+
  # @function getPathList
  #  get array of paths from table
  # @return string "D:/x/x/x/"
@@ -183,8 +186,7 @@ def reviewSentTracks(userID):
     return('todo')
 
 
-# Create database IF NOT EXISTS
-checkDatabase()
+
 
 # TODO make this NOT break if table is empty
 def getUsers():
@@ -198,11 +200,14 @@ def getUsers():
 
 def getLibrary():
     arr = []
-    for row in c.execute('SELECT * FROM library ORDER BY track_id'):
-        #print([row[0], row[1], 'location', row[3], row[4]])
-        arr.append([row[0], row[1], row[3], row[4]])
-    #c.execute('SELECT * FROM users ORDER BY user_id')
+    # update files
+    if (libraryDatabaseInit()):
+        for row in c.execute('SELECT * FROM library ORDER BY track_id'):
+            #print([row[0], row[1], 'location', row[3], row[4]])
+            arr.append([row[0], row[1], row[3], row[4]])
+        #c.execute('SELECT * FROM users ORDER BY user_id')
     return arr
+    
 
 
 # displayUsers()
