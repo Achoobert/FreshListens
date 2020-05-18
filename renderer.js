@@ -94,7 +94,7 @@ function updateSelected() {
     "  Drive: " +
     selectedDrive[0] +
     "  Total send size: " +
-    totalSendSize +
+    bytesConvert(totalSendSize) +
     "  " +
     fileTypesSend;
 }
@@ -114,8 +114,11 @@ echoButton.addEventListener("click", () => {
       console.log(res);
     }
     toSendViewRender();
+    toSendView.style.display = "none";
+    //$().radio('dispose')
   });
 });
+
 echoButton.dispatchEvent(new Event("click"));
 ///// end debug
 
@@ -162,6 +165,8 @@ sendFiles.addEventListener("click", () => {
 //sendFiles.dispatchEvent(new Event("click"));
 
 getDrives.addEventListener("click", () => {
+  toSendView.style.display = "none";
+  clearEle(viewDrives);
   client.invoke("getDrives", (error, res) => {
     if (error) {
       console.error(error);
@@ -180,6 +185,7 @@ loadLibrary.addEventListener("click", () => {
 });
 //loadLibrary.dispatchEvent(new Event("click"));
 loadUsers.addEventListener("click", () => {
+  toSendView.style.display = "none";
   todo.style.display = "none";
   displayUserList();
 });
@@ -187,6 +193,7 @@ loadUsers.dispatchEvent(new Event("click"));
 //
 
 submitUser.addEventListener("click", () => {
+  toSendView.style.display = "none";
   //console.log(newUserData.location.value, newUserData.userName.value);
   addUser([newUserData.userName.value, newUserData.location.value]);
   //TODO update users list
@@ -306,11 +313,10 @@ function displayUserList() {
 function toSendAdd(data) {
   toSend.push(data);
   totalSendSize = data[3] + totalSendSize;
-  toSendSize.textContent =
-    "Total size to send is " + bytesConvert(totalSendSize);
   if (fileTypesSend.includes(data[2])) {
     fileTypesSend.append(data[2]);
   }
+  updateSelected();
   // make file row turns array into valid html tr row
   $("#myTable tbody").append(makeFileRow(data));
 }
@@ -624,8 +630,10 @@ function createHistoryTable(tableData) {
   return table;
 }
 
-const { ipcRenderer } = require("electron");
-
+document.getElementById("showLocationFinder").addEventListener("click", () => {
+  toSendView.style.display = "none";
+  pickLibraryLocation.style.display = "block";
+});
 const { dialog } = require("electron").remote;
 
 document.getElementById("dirs").addEventListener("click", () => {

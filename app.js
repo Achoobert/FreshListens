@@ -11,7 +11,7 @@ let $ = require("jquery");
 let mainWindow = null;
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 800,
+    width: 1200,
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -37,6 +37,7 @@ const createWindow = () => {
     mainWindow = null;
   });
 };
+
 app.on("ready", createWindow);
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {

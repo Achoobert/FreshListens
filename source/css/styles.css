@@ -6,6 +6,86 @@ h1 {
   color: darkred;
   text-align: center;
 }
+/*--------------------------------------------------------------
+# Header
+--------------------------------------------------------------*/
+#header {
+  height: 70px;
+  transition: all 0.5s;
+  z-index: 997;
+  transition: all 0.5s;
+  padding: 20px 0;
+  background: #2d6760;
+}
+
+#header.header-scrolled {
+  background: #1d443f;
+  height: 40px;
+  padding: 10px 0;
+}
+
+#header .logo h1 {
+  float: left;
+  font-size: 30px;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+#header .logo h1 a,
+#header .logo h1 a:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
+#header .logo img {
+  padding: 0;
+  margin: 0;
+  max-height: 40px;
+}
+@media (max-width: 770px) {
+  #hero h1 {
+    margin: 0;
+    font-size: 20px;
+  }
+  #header .container {
+    max-width: 720px;
+  }
+  #header #navBar {
+    margin: 0;
+  }
+}
+@media (max-width: 615px) {
+  #header .logo h1 {
+    display: none !important;
+  }
+  #header #navBar {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+  }
+  #sortable li {
+    margin: 0 1px 1px 1px;
+    padding: 0.2em;
+    padding-left: 0.6em;
+    font-size: 0.7em;
+    height: 9px;
+  }
+}
+
+#body {
+  margin-top: 80px;
+}
+
+#navBar {
+  float: right !important;
+}
+/*---------------------------------*/
 
 table {
   border-collapse: collapse;

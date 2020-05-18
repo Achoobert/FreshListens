@@ -11,3 +11,19 @@ pycalc/__pycache__/app.cpython-37.pyc
 *.db
 
 libraryPaths.txt
+
+pycalc/__pycache__/
+
+build/
+
+freshlistens-linux-arm64/
+
+freshlistens-linux-armv7l/
+
+freshlistens-linux-ia32/
+
+freshlistens-linux-mips64el/
+
+freshlistens-linux-x64/
+
+freshlistens-win32-ia32/

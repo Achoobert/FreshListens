@@ -18,14 +18,65 @@
 
     <title>Fresh Listens</title>
   </head>
-
-  <div id="navBar">
-    <!-- debug -->
-    <button id="echoButton">Retry Echo</button>
-    <button id="loadLibrary">Add Library Location</button>
-    <button id="loadUsers">Select User</button>
-    <button id="getDrives">Select Drive</button>
-  </div>
+  <header id="header" class="fixed-top">
+    <div class="container">
+      <div class="logo">
+        <h1 class="text-light">
+          <span>🎧Tracks🔊</span>
+        </h1>
+      </div>
+      <div id="navBar">
+        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+          <label class="btn btn-secondary active">
+            <input
+              type="radio"
+              name="Retry Echo"
+              id="echoButton"
+              autocomplete="off"
+            />
+            Retry Echo
+          </label>
+          <label class="btn btn-secondary active">
+            <input
+              type="radio"
+              name="showLocationFinder"
+              id="showLocationFinder"
+              autocomplete="off"
+            />
+            Library
+          </label>
+          <label class="btn btn-secondary active">
+            <input
+              type="radio"
+              name="getDrives"
+              id="getDrives"
+              autocomplete="off"
+            />
+            Drive
+          </label>
+          <label class="btn btn-secondary active">
+            <input
+              type="radio"
+              name="loadUsers"
+              id="loadUsers"
+              autocomplete="off"
+              checked
+            />
+            User
+          </label>
+          <label class="btn btn-secondary active">
+            <input
+              type="radio"
+              name="loadLibrary"
+              id="loadLibrary"
+              autocomplete="off"
+            />
+            File Send
+          </label>
+        </div>
+      </div>
+    </div>
+  </header>
 
   <body id="body">
     <!-- displays selected user and drive -->
@@ -34,7 +85,7 @@
       side-by-side view 
       library - to Send Tracks
     -->
-    <div id="toSendSize">No data to be sent</div>
+
     <div id="toSendView">No data to be sent</div>
     <!--
       Start send
@@ -183,16 +234,12 @@
       </div>
     </form>
 
-    <br />
-
     <!--
       Select a drive
     -->
     <div id="viewDrives">
       <h3>Choose Destination</h3>
     </div>
-    <p></p>
-    <br /><br /><br />
 
     <div id="usersView">
       <form id="newUserData">
