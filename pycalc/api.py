@@ -16,6 +16,16 @@ class Api(object):
     #   List library    
     #   Take track ids, os send to drive(store)
     #   Disconnect drive
+    def appInit(self):
+        """send any text to app.py to get echoed"""
+        try:
+            app.checkDatabase()
+            app.libraryDatabaseInit()
+        except Exception as e:
+            if hasattr(e, 'message'):
+                return("api works" + (getattr(e, 'message', str(e))))
+            else:
+                return(e)
     def echo(self, text):
         """send any text to app.py to get echoed"""
         try:
@@ -93,12 +103,12 @@ def parse_port():
 
 
 def main():
+    Api.appInit({})
     addr = 'tcp://127.0.0.1:' + str(parse_port())
     s = zerorpc.Server(Api())
     s.bind(addr)
     print('start running on {}'.format(addr))
     print (Api.echo({}, "only prints if app is working "))
-    app.checkDatabase()
     s.run()
 
 if __name__ == '__main__':

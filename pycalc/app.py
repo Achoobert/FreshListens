@@ -66,7 +66,9 @@ def libraryDatabaseInit():  # check whole library location for new files (IF NOT
         return False
     files = []
     # r=root, d=directories, f = files
+    # make an array of ID's not found, remove them
     try:
+        resetLibrary()
         for library_path in pathList:
             for r, d, f in os.walk(Path(library_path)):
                 for fn in f:
@@ -74,13 +76,19 @@ def libraryDatabaseInit():  # check whole library location for new files (IF NOT
                         (os.path.splitext(fn)[0]),
                         os.path.join(r, fn),
                         "audio",
-                        os.stat(os.path.join(r, fn)).st_size
+                        os.stat(os.path.join(r, fn)).st_size,
+                        1
                     ])
         for f in files:
             # print(f)
+            # TODO check if this is 'ignore', only execute update in that case
             c.execute(
                 # track_id, name, location, type, size
-                "INSERT OR IGNORE INTO library VALUES (null,'{0}','{1}','{2}',{3})".format(*f))
+                # null       0         1       2      3       4      
+                # track_id,name , location , type , size , checked 
+                "INSERT OR IGNORE INTO library VALUES (null,'{0}','{1}','{2}',{3},{4})".format(*f))
+            c.execute(
+                "UPDATE library SET checked = 1 WHERE (name == '"+ str(f[0])+"' AND location == '"+ str(f[1]) +"')")
         conn.commit()
         return True
     except Exception as e:
@@ -88,6 +96,10 @@ def libraryDatabaseInit():  # check whole library location for new files (IF NOT
             return(getattr(e, 'message', str(e)))
         else:
             return(e)
+
+def resetLibrary():
+    c.execute("UPDATE library SET checked = 0")
+    conn.commit()
 
 print ("test")
 print (libraryDatabaseInit())
