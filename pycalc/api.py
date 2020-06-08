@@ -19,11 +19,10 @@ class Api(object):
     def appInit(self):
         """send any text to app.py to get echoed"""
         try:
-            app.checkDatabase()
-            app.libraryDatabaseInit()
+            app.appInit()
         except Exception as e:
             if hasattr(e, 'message'):
-                return("api works" + (getattr(e, 'message', str(e))))
+                return("api works but " + (getattr(e, 'message', str(e))))
             else:
                 return(e)
     def echo(self, text):

@@ -3,9 +3,11 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap CSS 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">-->
     <!-- Bootstrap Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <link rel="stylesheet" href="./dist/themes/default/style.min.css" />
     <link rel="stylesheet" href="./source/css/bootstrap.min.css" />
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="source/css/styles.css" />
@@ -14,7 +16,14 @@
       require("bootstrap");
       require("jquery-ui-dist/jquery-ui");
       require("popper.js");
+      require("./node_modules/jstree/dist/jstree.min.js");
     </script>
+    <!--  Stuff to make icons work TODO import so it's stored local-->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css"
+    />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
 
     <title>Fresh Listens</title>
   </head>
@@ -79,6 +88,9 @@
   </header>
 
   <body id="body">
+    <div id="testTree"></div>
+    <div id="event_result"></div>
+
     <!-- displays selected user and drive -->
     <h6 id="selected"></h6>
     <!--

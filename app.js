@@ -5,6 +5,8 @@ const BrowserWindow = electron.BrowserWindow;
 const path = require("path");
 let $ = require("jquery");
 
+//const jstree = "./dist/jstree";
+
 //  to run this in test mode
 // './node_modules/.bin/electron .'
 

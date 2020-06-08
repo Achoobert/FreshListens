@@ -13,6 +13,8 @@ npm install
 const zerorpc = require("zerorpc");
 let client = new zerorpc.Client();
 client.connect("tcp://127.0.0.1:4242");
+/////const jstree = require("./node_modules/jstree/dist/jstree.min.js");
+//let jstree = new jstree.Client();
 
 let loadUsers = document.querySelector("#loadUsers");
 let getDrives = document.querySelector("#getDrives");
@@ -24,6 +26,7 @@ let sendFiles = document.querySelector("#sendFiles");
 let todo = document.querySelector("#todo");
 let selected = document.querySelector("#selected");
 let toSendSize = document.querySelector("#toSendSize");
+let pickLibraryLocation = document.querySelector("#pickLibraryLocation");
 
 // Global variables
 // view variables
@@ -104,7 +107,8 @@ let echoButton = document.querySelector("#echoButton");
 
 echoButton.addEventListener("click", () => {
   //libraryDatabaseInit();
-
+  // console.log($("#testTree").jstree(true).get_node("Child node 23"));
+  //$("#testTree").jstree(false).select_node("Child node 1");
   client.invoke("echo", "api.py -> app.py working", (error, res) => {
     echoButton.style.display = "block";
     if (error) {
@@ -513,6 +517,18 @@ function makeFileRow(rowData) {
       row.appendChild(cell);
     }
   });
+  // add remove onClick cell
+  // glyphicon glyphicon-trash
+  var cell = document.createElement("td");
+  cell.appendChild(
+    document.createTextNode("<span class='glyphicon glyphicon-trash'></span>")
+  );
+  cell.addEventListener("click", function () {
+    alert(rowData);
+    //removeFromToSend(rowData);
+  });
+  //append to form element that you want .
+  row.appendChild(cell);
   return row;
 }
 function createSendTable(tableData) {
@@ -653,10 +669,9 @@ function addLibraryPath(path) {
       // it IS getting scanned, but update isn't working
       // TODO convert init into a promise
       clearEle(toSendView);
-      toSendViewRender().then(() => {
-        // this action, of course, runs perfectly
-        pickLibraryLocation.style.display = "none";
-      });
+      toSendViewRender();
+      // this action, of course, runs perfectly
+      pickLibraryLocation.style.display = "none";
 
       // remove add library button
     }
@@ -694,3 +709,144 @@ var fixHelperModified = function (e, tr) {
       $(this).val(i + 1);
     });
 };*/
+
+// jsfiletree expect 'text' for the user 'view'
+// does not have to be unique
+
+function getFileTree() {
+  return {
+    text: "root",
+    children: [
+      {
+        text: "Root Node Import",
+        state: { opened: true },
+        a: "sub0",
+        children: [
+          {
+            a: "sub0A",
+            b: "foo",
+            icon: "glyphicon glyphicon-cd",
+          },
+          {
+            text: "test here",
+            a: "sub0B",
+            icon: "glyphicon glyphicon-cd",
+          },
+        ],
+      },
+      {
+        a: "sub1",
+      },
+    ],
+  };
+}
+
+function setJsonData(identifier, newTrait, jsonObj) {
+  for (var i = 0; i < jsonObj.length; i++) {
+    if (jsonObj[i].Id === id) {
+      jsonObj[i].Username = newUsername;
+      return;
+    }
+  }
+}
+function setJsonData(id, newTrait, tree) {
+  if (tree.hasOwnProperty(tree.track_id)) {
+    if (tree.track_id === id) {
+      tree.items = newTrait;
+    }
+  } else {
+    tree.items = tree.items.map(function (item) {
+      return updateTree(id, update, item);
+    });
+  }
+  return tree;
+}
+var data = [{ id: 121, items: [] }];
+
+tree = updateTree(67, data, tree);
+
+//
+
+$.getScript("./dist/jstree.min.js", function () {
+  $(function () {
+    $("#testTree")
+      // listen for click event
+      .on("changed.jstree", function (e, data) {
+        var i,
+          j,
+          r = [];
+        for (i = 0, j = data.selected.length; i < j; i++) {
+          r.push(data.instance.get_node(data.selected[i]).text);
+        }
+        $("#event_result").html("Selected: " + r.join(", "));
+      })
+      // create the instance
+      .jstree({
+        core: {
+          data: [
+            {
+              text: "Root node",
+              state: { opened: true },
+              children: [
+                {
+                  text: "Child node 1",
+                  state: { selected: true },
+                  icon: "glyphicon glyphicon-cd",
+                },
+                {
+                  text: "Child node 2",
+                  state: { disabled: true },
+                },
+                {
+                  text: "Child dir 1",
+                  state: { opened: true },
+                  children: [
+                    {
+                      text: "Child node 23",
+                      icon: "	glyphicon glyphicon-saved",
+                    },
+                  ],
+                },
+              ],
+            },
+            getFileTree(),
+            {
+              text: "Root node2",
+              state: { opened: false },
+              children: [
+                {
+                  text: "Child node 1",
+                  icon: ".glyphicon glyphicon-flash",
+                },
+                {
+                  text: "Child node 2",
+                  state: { disabled: true },
+                },
+                {
+                  text: "Child dir 1",
+                  state: { opened: true },
+                  children: [
+                    {
+                      text: "Child node 3",
+                      icon: ".glyphicon glyphicon-flash",
+                    },
+                  ],
+                },
+              ],
+            }, //
+          ],
+        },
+      })
+      .bind("loaded.jstree", function (e, data) {
+        // once the tree is loaded
+        debugger;
+        //$("#tree").jstree("select_node", "#ref565", true);
+        // do something to node with this identifier
+        // a: 'sub0B'
+        $("#testTree").jstree(true).select_node("Child node 23");
+        $("#testTree").jstree(false).select_node("Child node 1");
+      });
+  });
+  // $("#testTree").jstree("select_node", "Child node 23");
+  // $.jstree.reference("#testTree").select_node("Child node 23");
+});
