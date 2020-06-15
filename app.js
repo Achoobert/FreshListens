@@ -70,6 +70,7 @@ const PY_MODULE = "api"; // without .py suffix
 
 const guessPackaged = () => {
   const fullPath = path.join(__dirname, PY_DIST_FOLDER);
+  //console.log(fullPath);
   return require("fs").existsSync(fullPath);
 };
 
@@ -99,7 +100,7 @@ const createPyProc = () => {
   }
 
   if (pyProc != null) {
-    //console.log(pyProc)
+    console.log(script);
     console.log("child process success on port " + port);
   }
 };

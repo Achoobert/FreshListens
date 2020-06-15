@@ -30,6 +30,7 @@ def checkDatabase():  # Create database IF NOT EXISTS
     c.execute('''CREATE TABLE IF NOT EXISTS location(loc_id INTEGER PRIMARY KEY, location text )''')
     c.execute('''CREATE TABLE IF NOT EXISTS directories 
     (dir_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, parent_dir TEXT, location TEXT, checked INTEGER DEFAULT 0, UNIQUE(name, location))''')
+    c.execute('''CREATE TABLE IF NOT EXISTS tree (tree_id INTEGER PRIMARY KEY AUTOINCREMENT, jsonText TEXT)''')
     conn.commit()
     return True
 
@@ -51,7 +52,7 @@ def getPathList():
 def addLibraryPath(newLine):
     # add path to file, ALSO update database
     try:
-        c.execute("INSERT OR IGNORE INTO location VALUES (null,\"" + newLine[0] + "\")")
+        c.execute("INSERT OR IGNORE INTO location VALUES (null,\"" + newLine + "\")")
         conn.commit()
         # scan the new folder 
         scanSuccess = libraryDatabaseInit()
@@ -63,17 +64,26 @@ def addLibraryPath(newLine):
             return(e)
 
 def resetLibrary():
+    # TODO Optimize this
+    # REMOVEDFORTESTING 
+    return True
     c.execute("UPDATE library SET checked = 0")
+    c.execute("UPDATE directories SET checked = 0")
     conn.commit()
 
 def libraryDatabaseInit(): # get paths, send to scanner
+    # TODO optimize
+    # REMOVEDFORTESTING
+    return True
     # Update pathlist
     # pathList = ["D:\schubert.dev\Library Manager\Audioก\MUSIC\Dee Kheng แคว่แน้ฌี้", "D:\schubert.dev\Library Manager\Audioก\MUSIC\Dee Kheng ทมึลู่งที๊งแว่ลโค๊"]
     pathList = getPathList()
     # if null on startup check
     if (pathList.__len__() == 0):
         return False
-    resetLibrary()
+    # Only check for missing files on app startup. 
+    # if user deletes files with app open thats THEIR problem
+    # resetLibrary()
     return locationScan(pathList)
 
 def locationScan(pathList): # Scan the directories
@@ -109,14 +119,13 @@ def locationScan(pathList): # Scan the directories
 
 def libraryFileInsert(file): # Update the Database
     try:
-        c.execute(
-            # track_id, name, location, type, size
-            # null       0         1       2      3       4        5
-            # track_id,name , location , type , size , parent_dir, checked 
-            "INSERT OR IGNORE INTO library VALUES (null,'{0}','{1}','{2}',{3},'{4}',{5})".format(*file))
-        # If record already exists, update database to reflect that it exists
-        c.execute(
-            "UPDATE library SET checked = 1 WHERE (name == '"+ str(file[0])+"' AND location == '"+ str(file[1]) +"')")
+        c.execute("UPDATE or IGNORE library SET checked = 1 WHERE (name == '"+ str(file[0])+"' AND location == '"+ str(file[1]) +"')")
+        if c.rowcount < 1:
+            # error, file does not exist
+                # track_id, name, location, type, size
+                # null       0         1       2      3       4        5
+                # track_id,name , location , type , size , parent_dir, checked 
+            c.execute("INSERT OR IGNORE INTO library VALUES (null,'{0}','{1}','{2}',{3},'{4}',{5})".format(*file))
         conn.commit()
         return True
     except Exception as e:
@@ -133,7 +142,7 @@ def dirInsert(dir): # Update the Database
             "INSERT OR IGNORE INTO directories VALUES (null, '{0}','{1}','{2}', 1)".format(*dir))
         # If record already exists, update database to reflect that it exists
         c.execute(
-            "UPDATE directories SET checked = 1 WHERE (name == '"+ str(dir[0])+"' AND location == '"+ str(dir[1]) +"')")
+            "UPDATE directories SET checked = 1 WHERE (name == '"+ str(dir[0])+"' AND location == '"+ str(dir[2]) +"')")
         conn.commit()
         return (True)
     except Exception as e:
@@ -145,13 +154,7 @@ def dirInsert(dir): # Update the Database
 def appInit():
     try:
         checkDatabase()
-    except Exception as e:
-        if hasattr(e, 'message'):
-            return(getattr(e, 'message', str(e)))
-        else:
-            return(e)
-    try:
-        libraryDatabaseInit()
+        resetLibrary()
     except Exception as e:
         if hasattr(e, 'message'):
             return(getattr(e, 'message', str(e)))
@@ -251,12 +254,18 @@ def getUsers():
 
 ### start Tree Builder code ###
 class libNode(NodeMixin):  # create new class with Node feature
-    def __init__(self, displayLabel, fullpath, parent=None, track_id=None, children=None):
+    def __init__(self, text, fullpath, parent=None, track_data=None, topDir=None, children=None):
         super(libNode, self).__init__()
-        self.displayLabel = displayLabel   # what the User sees
+        self.text = text                    # what the User sees
         self.name = fullpath               # "d:/root/child" unique 'id'
-        if track_id:
-            self.track_id = track_id           # lib_id
+        if track_data:                        # If it is a file
+            # [id, name, type, size]  
+            self.track_data = track_data
+            self.id = track_data[0]
+            #self.size = track_data[2]
+            self.icon = "glyphicon glyphicon-cd"
+        if topDir:
+            self.state = { "opened": "true" }
         self.parent = parent               # parent full path
         if children:
             self.children = children       # possible both Dir and Track ???
@@ -267,23 +276,23 @@ def treeBuilder():# Tree Builder Function
     def returnJsonTree(d):
         exporter = JsonExporter(indent=2, sort_keys=True, ensure_ascii=False)
         return(exporter.export(d))
+    exporter = JsonExporter(indent=2, sort_keys=True, ensure_ascii=False)
     # Create a dictionary to procedurally store node objects in
     libTreeDict = {}
-    try:
-        libTreeDict["myRoot"] = libNode("root", "/")
+    try:        
+        libTreeDict["myRoot"] = libNode("my Library Folders", fullpath="/", topDir=1)        
         # Build first layer, user selected library locations 
-        for row in c.execute('SELECT * FROM location'):
+        for row in c.execute('SELECT location FROM location'):
             # and in the loop use the name as key when you add your instance:
-            libTreeDict[(row[1])] = libNode(os.path.basename(row[1]), row[1], parent=libTreeDict[("ROOT")]) # root is parent '/' and locationDir ID is '/path'
-        # Second layer, all directories with locations as possible parents
-        for row in c.execute('''SELECT name, location, parent_dir FROM directories'''):
-            # TODO dicionary insert name variable, is it too long?
-            libTreeDict[(row[1])] =  libNode(row[0], row[1], parent=libTreeDict[(row[2])]) # parent is stored in dir database as '/path' 
-        # End points, files. Directories or locations are possible parents
-        for row in c.execute('''SELECT name, location, parent_dir, track_id FROM library'''):
-            libTreeDict[(row[1])] =  libNode(row[0], row[1], parent=row[2], track_id=libTreeDict[(row[3])]) # parent is stored in dir database as '/path'
+            libTreeDict[(row[0])] = libNode(os.path.basename(Path(row[0])), fullpath=row[0], parent=libTreeDict[("myRoot")], topDir=1) # root is parent '/' and locationDir ID is '/path'
+        for row in c.execute('''SELECT name, location, parent_dir, checked FROM directories WHERE checked == 1'''):
+            # TODO dictionary insert name variable, is it too long?
+            libTreeDict[(row[1])] =  libNode(row[0], fullpath=row[1], parent=libTreeDict[row[2]]) # parent is stored in dir database as '/path' 
+        # End points, files. Directories or locations are possible parents      
+        for row in c.execute('''SELECT name, location, parent_dir, track_id, type, size, checked FROM library WHERE checked == 1'''):
+            libTreeDict[(row[1])] =  libNode(row[0], row[1], parent=libTreeDict[(row[2])], track_data=[row[3],row[0],row[4],row[5]]) # parent is stored in dir database as '/path'
         # returnTree
-        return returnJsonTree(libTreeDict["myRoot"])
+        return(exporter.export(libTreeDict["myRoot"]))
     except Exception as e:
         if hasattr(e, 'message'):
             return(getattr(e, 'message', str(e)))
@@ -292,9 +301,18 @@ def treeBuilder():# Tree Builder Function
 #print (treeBuilder())
 
 def getLibrary():
+    #tree = []
+    #for row in c.execute('SELECT jsonText FROM tree'):
+        # get only the json text
+    #    tree.append(row[0])
+    #if(len(tree)!= 0):
+    #    return tree[((len(tree)-1))]
     #return (returnJsonTree(treeBuilder()))
-    return (treeBuilder())
-    arr = []
+    jsonText = (treeBuilder())
+    #c.execute("INSERT OR IGNORE INTO tree VALUES (null,`" + jsonText + "`)")
+    #conn.commit()
+    return (jsonText)
+    #arr = []
     # update files
     #if (libraryDatabaseInit()):
     #    for row in c.execute('SELECT * FROM library ORDER BY track_id'):
@@ -303,7 +321,7 @@ def getLibrary():
         #c.execute('SELECT * FROM users ORDER BY user_id')
 # return arr
 # class anytree.node.node.Node(name, parent=None, children=None, **kwargs)
-print(getLibrary())
+#print(getLibrary())
 
 def echo(text):
     return (text)

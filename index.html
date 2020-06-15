@@ -36,16 +36,7 @@
       </div>
       <div id="navBar">
         <div class="btn-group btn-group-toggle" data-toggle="buttons">
-          <label class="btn btn-secondary active">
-            <input
-              type="radio"
-              name="Retry Echo"
-              id="echoButton"
-              autocomplete="off"
-            />
-            Retry Echo
-          </label>
-          <label class="btn btn-secondary active">
+          <label class="btn btn-secondary active" id="showLocationFinder">
             <input
               type="radio"
               name="showLocationFinder"
@@ -54,7 +45,16 @@
             />
             Library
           </label>
-          <label class="btn btn-secondary active">
+          <label class="btn btn-secondary active" id="echoButton">
+            <input
+              type="button"
+              name="Retry Echo"
+              id="echoButton"
+              autocomplete="off"
+            />
+            Retry Echo
+          </label>
+          <label class="btn btn-secondary active" id="getDrives">
             <input
               type="radio"
               name="getDrives"
@@ -63,7 +63,7 @@
             />
             Drive
           </label>
-          <label class="btn btn-secondary active">
+          <label class="btn btn-secondary active" id="loadUsers">
             <input
               type="radio"
               name="loadUsers"
@@ -73,7 +73,7 @@
             />
             User
           </label>
-          <label class="btn btn-secondary active">
+          <label class="btn btn-secondary active" id="loadLibrary">
             <input
               type="radio"
               name="loadLibrary"
@@ -88,7 +88,6 @@
   </header>
 
   <body id="body">
-    <div id="testTree"></div>
     <div id="event_result"></div>
 
     <!-- displays selected user and drive -->
@@ -200,7 +199,8 @@
       </div>
     </div>
 -->
-
+    <p>this is the example tree</p>
+    <div id="testTree"></div>
     <!--
       build notes
     -->

@@ -22,7 +22,7 @@ class Api(object):
             app.appInit()
         except Exception as e:
             if hasattr(e, 'message'):
-                return("api works but " + (getattr(e, 'message', str(e))))
+                return("api works but cannot init " + (getattr(e, 'message', str(e))))
             else:
                 return(e)
     def echo(self, text):
@@ -45,7 +45,8 @@ class Api(object):
         try:
             return app.getHistory(userID)
         except Exception as e:
-            return (str(e))
+            print(e)
+            return (e)
     def getDrives(self):
         """based on the input text, return the int result"""
         try:
@@ -57,7 +58,10 @@ class Api(object):
         try:
             return app.getLibrary()
         except Exception as e:
-            return (str(e))
+            if hasattr(e, 'message'):
+                return("api works but cannot get library " + (getattr(e, 'message', str(e))))
+            else:
+                return(e)
     def sendFiles(self, dataArr):        
         """based on the input text, return the int result"""
         try:
@@ -82,7 +86,10 @@ class Api(object):
         try:
             return app.addLibraryPath(newPath)
         except Exception as e:
-            return (str(e))
+            if hasattr(e, 'message'):
+                return("cannot " + (getattr(e, 'message', str(e))))
+            else:
+                return(e)
     def getPathList(self):
         """Return list of drives"""
         try:
@@ -94,21 +101,37 @@ class Api(object):
         try:
             return app.libraryDatabaseInit()
         except Exception as e:
-            return (str(e))
+            return (e)
             
-
 def parse_port():
     return 4242
 
-
 def main():
-    Api.appInit({})
+    #Api.appInit({})
+    # TODO how to only update the app
+    app.appInit()
     addr = 'tcp://127.0.0.1:' + str(parse_port())
+    # set timeout here...
+    s = zerorpc.Server(Api(), heartbeat=None)
+    s.bind(addr)
+    print('start running on {}'.format(addr))
+    print (Api.echo({}, "only prints if app is working "))
+    s.run()
+
+def testMain():
+    Api.appInit({})
+    print (Api.echo({}, "only prints if app is working "))
+    return True
+
+def testZerorpc():
+    addr = 'tcp://127.0.0.1:4242'
     s = zerorpc.Server(Api())
     s.bind(addr)
     print('start running on {}'.format(addr))
     print (Api.echo({}, "only prints if app is working "))
     s.run()
+    s.exit()
+    return True
 
 if __name__ == '__main__':
     main()

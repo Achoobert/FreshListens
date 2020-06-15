@@ -10,8 +10,9 @@ rm -rf ~/.node-gyp ~/.electron-gyp
 
 npm install
 */
+
 const zerorpc = require("zerorpc");
-let client = new zerorpc.Client();
+let client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
 client.connect("tcp://127.0.0.1:4242");
 /////const jstree = require("./node_modules/jstree/dist/jstree.min.js");
 //let jstree = new jstree.Client();
@@ -21,7 +22,7 @@ let getDrives = document.querySelector("#getDrives");
 let viewDrives = document.querySelector("#viewDrives");
 let submitUser = document.querySelector("#submitUser");
 let users = document.querySelector("#users");
-let userHistory = document.querySelector("#userHistory");
+
 let sendFiles = document.querySelector("#sendFiles");
 let todo = document.querySelector("#todo");
 let selected = document.querySelector("#selected");
@@ -32,6 +33,7 @@ let pickLibraryLocation = document.querySelector("#pickLibraryLocation");
 // view variables
 // Cashing the library html element
 var libraryObj;
+var libraryChecked = 0;
 
 /**
  * @function asyncCallLibrary
@@ -42,10 +44,18 @@ var libraryObj;
 async function asyncCallLibrary() {
   // only run this if new paths have been added
   return new Promise((resolve) => {
-    getLibrary().then((result) => {
-      libraryObj = result;
-      resolve(result);
-    });
+    if (libraryChecked == 0) {
+      libraryDatabaseInit().then(() => {
+        getLibrary().then((result) => {
+          libraryObj = result;
+          //console.log(result);
+          resolve(result);
+        });
+      });
+    } else {
+      console.log("saved a request!");
+      resolve(libraryObj);
+    }
   });
 }
 
@@ -100,12 +110,24 @@ function updateSelected() {
     bytesConvert(totalSendSize) +
     "  " +
     fileTypesSend;
+
+  console.log(
+    "user: " +
+      currentUser[1] +
+      "  Drive: " +
+      selectedDrive[0] +
+      "  Total send size: " +
+      bytesConvert(totalSendSize) +
+      "  " +
+      fileTypesSend
+  );
 }
 
 ///// debugging stuff, delete later
 let echoButton = document.querySelector("#echoButton");
 
 echoButton.addEventListener("click", () => {
+  console.log("click");
   //libraryDatabaseInit();
   // console.log($("#testTree").jstree(true).get_node("Child node 23"));
   //$("#testTree").jstree(false).select_node("Child node 1");
@@ -117,7 +139,7 @@ echoButton.addEventListener("click", () => {
       echoButton.style.display = "none";
       console.log(res);
     }
-    toSendViewRender();
+    //toSendViewRender();
     toSendView.style.display = "none";
     //$().radio('dispose')
   });
@@ -142,17 +164,19 @@ function libraryDatabaseInit() {
     client.invoke("libraryDatabaseInit", (error, res) => {
       if (error) {
         console.error(error);
-        resolve;
+        // retry
+        resolve(libraryDatabaseInit());
       } else {
-        console.log("Library checked" + toString(res));
-        resolve;
+        console.log("Library checked " + res);
+        libraryChecked = 1;
+        resolve(1);
       }
     });
   });
 }
 
 sendFiles.addEventListener("click", () => {
-  //console.log([toSend, currentUser[0], selectedDrive[0]]);
+  console.log([toSend, currentUser[0], selectedDrive[0]]);
   client.invoke(
     "sendFiles",
     [toSend, currentUser, selectedDrive[0]],
@@ -169,6 +193,8 @@ sendFiles.addEventListener("click", () => {
 //sendFiles.dispatchEvent(new Event("click"));
 
 getDrives.addEventListener("click", () => {
+  console.log("clicked get drives");
+
   toSendView.style.display = "none";
   clearEle(viewDrives);
   client.invoke("getDrives", (error, res) => {
@@ -180,12 +206,13 @@ getDrives.addEventListener("click", () => {
     }
   });
 });
-getDrives.dispatchEvent(new Event("click"));
+//getDrives.dispatchEvent(new Event("click"));
 
 let loadLibrary = document.querySelector("#loadLibrary");
 loadLibrary.addEventListener("click", () => {
   console.log("click load libray");
-  toSendViewRender();
+  // TODO fix this
+  //toSendViewRender();
 });
 //loadLibrary.dispatchEvent(new Event("click"));
 loadUsers.addEventListener("click", () => {
@@ -197,7 +224,9 @@ loadUsers.dispatchEvent(new Event("click"));
 //
 
 submitUser.addEventListener("click", () => {
-  toSendView.style.display = "none";
+  //refreshTree();
+  showHistoryNodes(["1", "2", "3", "4"]);
+  //toSendView.style.display = "none";
   //console.log(newUserData.location.value, newUserData.userName.value);
   addUser([newUserData.userName.value, newUserData.location.value]);
   //TODO update users list
@@ -218,8 +247,13 @@ function getUsers() {
     client.invoke("getUsers", (error, res) => {
       if (error) {
         console.error(error);
-        resolve(error);
+        // try again
+        resolve(getUsers());
+      } else if (res.length == 0) {
+        // no users in table, so don't make table
+        console.log("no users");
       } else {
+        // make the user table
         resolve(createUserTable(res));
       }
     });
@@ -235,12 +269,13 @@ function getUsers() {
 function getLibrary() {
   //await libraryDatabaseInit();
   return new Promise((resolve) => {
-    // need to initialize
     client.invoke("getLibrary", (error, res) => {
       if (error) {
         console.error(error);
+        resolve(getLibrary());
       } else {
-        resolve(createLibraryTable(res));
+        console.log(JSON.parse(res));
+        resolve(res);
       }
     });
   });
@@ -266,24 +301,84 @@ function addUser(data) {
 
 /**
  * @function displayHistory
- *  update/ init the history element
+ *  update/ elements in library which match history
  * @param int user id
- * @update DOM: userHistory.appendChild()
+ * @update DOM:
  */
 function displayHistory(userId) {
+  //TODO check this
+  // arr = getHistory(userId)
+  //console.log($("#jsFileTreeLibrary li").find("#1").css("color", "red"));
+  //$("#jsFileTreeLibrary li").find("#j2_2_anchor").css("color", "red");
+  console.log(
+    $("#jsFileTreeLibrary li").find("#j2_3_anchor").css("color", "red")
+  );
+  console.log(
+    $("#jsFileTreeLibrary #j2_3_anchor").find("j2_4_anchor").css("color", "red")
+  );
+  console.log(
+    $("#jsFileTreeLibrary")
+      .find("li")
+      .find("li")
+      .find("#j2_4_anchor")
+      .css("color", "red")
+  );
+  console.log($("#jsFileTreeLibrary li").find("#1_anchor").css("color", "red"));
+  console.log($("#jsFileTreeLibrary li").find("#9").css("color", "red"));
+
+  arr = [1, 2, 3, 4, 5, 6];
+  arr.forEach((element) => {
+    // a) do some jquery
+    // find node where
+    //$("#myTable tbody").append(makeFileRow(data));
+    //$("#testTree li").css("color", "red");
+    //debugger;
+    $("#jsFileTreeLibrary li")
+      .find("#1") //+ toString(1)
+      .css("color", "red");
+    /*
+    id="jsFileTreeLibrary"
+    role="tree"
+    class="jstree jstree-2 jstree-default"
+
+    fine where
+    li
+    role="treeitem"
+    id="1"
+
+    update the
+    a / i jstree icon?
+    */
+    // update node properties
+    //refresh whole tree?
+    // b) edit the json tree
+    //open tree
+    //edit nodes
+    //rebuild the jstree somehow
+    //
+    // c) Update from within the jquery
+    // that initially built the tree
+    // can it update later if user changes?
+  });
+}
+/**
+ * @function getHistory
+ *  get user history
+ * @param int user id
+ */
+function getHistory(userId) {
   client.invoke("getHistory", userId, (error, res) => {
     if (error) {
       console.error(error);
     } else {
-      clearEle(userHistory);
       if (res == null) {
-        userHistory.textContent = "null return";
+        console.log("no history returned");
       } else if (res.length == 0) {
         currentHistory = res;
-        userHistory.textContent = "No User History";
+        return res;
       } else {
         currentHistory = res;
-        userHistory.appendChild(createHistoryTable(res));
+        return res;
       }
     }
   });
@@ -300,7 +395,6 @@ function displayUserList() {
   clearEle(users);
   async function asyncCallUsers() {
     const result = await getUsers();
-    // TODO what if this is blank?
     users.appendChild(result);
     return result;
   }
@@ -316,13 +410,34 @@ function displayUserList() {
  */
 function toSendAdd(data) {
   toSend.push(data);
+  console.log(data);
   totalSendSize = data[3] + totalSendSize;
-  if (fileTypesSend.includes(data[2])) {
-    fileTypesSend.append(data[2]);
+  if (!fileTypesSend.includes(data[2])) {
+    console.log("adding filetype");
+    fileTypesSend.push(data[2]);
   }
   updateSelected();
   // make file row turns array into valid html tr row
   $("#myTable tbody").append(makeFileRow(data));
+}
+
+/**
+ * @function toSendRemove
+ *  remove/ update the library element
+ * @param array [id, name, type, size]
+ * @update toSend variable
+ * @update "#myTable tbody" ,remove existing row
+ */
+function toSendRemove(data) {
+  toSend = toSend.filter(function (ele) {
+    if (ele[0] == data[0]) {
+      console.log(ele);
+    }
+    return ele[0] != data[0];
+  });
+  // TODO re-enable selection of track from library
+  totalSendSize = totalSendSize - data[3];
+  updateSelected();
 }
 
 /**
@@ -347,36 +462,37 @@ function toSendViewRender() {
   toSendView.style.display = "block";
   //console.log(getLibrary());
 
-  asyncCallLibrary().then((col1) => {
-    var col2 = createSendTable(toSend);
-    toSendView.appendChild(sideBySide([col1, col2]));
-    $("#myTable tbody")
-      .sortable({
-        helper: fixHelperModified,
-        stop: function (e, ui) {
-          $("td.index", ui.item.parent()).each(function (i) {
-            $(this).html(i + 1);
-          });
-          $("input[type=text]", ui.item.parent()).each(function (i) {
-            $(this).val(i + 1);
-          });
-          let arr = [];
-          let table = ui.item[0].parentElement.childNodes;
-          table.forEach((row) => {
-            let r = [];
-            for (var key in row.children) {
-              if (row.children.hasOwnProperty(key)) {
-                // cell : console.log(row.children[key].textContent);
-                r.push(row.children[key].textContent);
-              }
+  //asyncCallLibrary().then((col1) => {
+  var col1 = createLibraryTable();
+  var col2 = createSendTable(toSend);
+  toSendView.appendChild(sideBySide([col1, col2]));
+  $("#myTable tbody")
+    .sortable({
+      helper: fixHelperModified,
+      stop: function (e, ui) {
+        $("td.index", ui.item.parent()).each(function (i) {
+          $(this).html(i + 1);
+        });
+        $("input[type=text]", ui.item.parent()).each(function (i) {
+          $(this).val(i + 1);
+        });
+        let arr = [];
+        let table = ui.item[0].parentElement.childNodes;
+        table.forEach((row) => {
+          let r = [];
+          for (var key in row.children) {
+            if (row.children.hasOwnProperty(key)) {
+              // cell : console.log(row.children[key].textContent);
+              r.push(row.children[key].textContent);
             }
-            arr.push(r);
-          });
-          toSendUpdate(arr);
-        },
-      })
-      .disableSelection();
-  });
+          }
+          arr.push(r);
+        });
+        toSendUpdate(arr);
+      },
+    })
+    .disableSelection();
+  //});
 
   //toSendView.appendChild(sideBySide([libraryObj, createSendTable(toSend)]));
 }
@@ -413,64 +529,13 @@ function unMountDrive() {}
   users.appendChild(createTable(res));
   TODO have event listener be a passed variable?
 */
-function createLibraryTable(tableData) {
+function createLibraryTable() {
   // formatting box
-  var table = document.createElement("table");
-  var tableBody = document.createElement("tbody");
   var outerBox = document.createElement("outerBox");
+  var jsFileTreeLibrary = document.createElement("jsFileTreeLibrary");
+  jsFileTreeLibrary.setAttribute("id", "jsFileTreeLibrary");
   outerBox.setAttribute("class", "col-lg-12");
-  // table formatting
-  var table = document.createElement("table");
-  table.setAttribute("class", "table table-hover");
-  table.setAttribute("id", "myLibTable");
-  // make a non-sortable tableHead and attach it to the table
-  function createHeader() {
-    var tableHead = document.createElement("thead");
-    let row = document.createElement("tr");
-    // tried to slim this down to a single cell. TODO may need to make cell class?
-    let cell0 = document.createElement("th");
-    let cell1 = document.createElement("th");
-    let cell2 = document.createElement("th");
-    function insert(cell) {
-      row.appendChild(cell);
-    }
-
-    cell0.innerHTML = "File Name";
-    insert(cell0);
-    cell1.innerHTML = "Type";
-    insert(cell1);
-    cell2.innerHTML = "Size";
-    insert(cell2);
-
-    tableHead.appendChild(row);
-    table.appendChild(tableHead);
-  }
-  createHeader();
-  tableData.forEach(function (rowData) {
-    var row = document.createElement("tr");
-    rowData.forEach(function (cellData) {
-      // hide ID
-      if (cellData != rowData[0]) {
-        // convert the size to readable amount
-        if (typeof cellData === "number") {
-          cellData = bytesConvert(cellData);
-        }
-        var cell = document.createElement("td");
-        cell.appendChild(document.createTextNode(cellData));
-        cell.addEventListener("click", function () {
-          // user clicked on row
-          toSendAdd(rowData);
-          //alert(rowData);
-        });
-        row.appendChild(cell);
-      }
-    });
-
-    tableBody.appendChild(row);
-  });
-
-  table.appendChild(tableBody);
-  outerBox.appendChild(table);
+  outerBox.appendChild(jsFileTreeLibrary);
   return outerBox;
 }
 function createTable(tableData) {
@@ -520,12 +585,12 @@ function makeFileRow(rowData) {
   // add remove onClick cell
   // glyphicon glyphicon-trash
   var cell = document.createElement("td");
-  cell.appendChild(
-    document.createTextNode("<span class='glyphicon glyphicon-trash'></span>")
-  );
+  // TODO use a proper ICON here, instead of unicode emoji
+  cell.appendChild(document.createTextNode("✖"));
   cell.addEventListener("click", function () {
-    alert(rowData);
-    //removeFromToSend(rowData);
+    toSendRemove(rowData);
+    $(this).parent().remove();
+    console.log(toSend);
   });
   //append to form element that you want .
   row.appendChild(cell);
@@ -547,6 +612,7 @@ function createSendTable(tableData) {
     let cell0 = document.createElement("th");
     let cell1 = document.createElement("th");
     let cell2 = document.createElement("th");
+    let cell3 = document.createElement("th");
     function insert(cell) {
       row.appendChild(cell);
     }
@@ -557,6 +623,8 @@ function createSendTable(tableData) {
     insert(cell1);
     cell2.innerHTML = "Type";
     insert(cell2);
+    cell3.innerHTML = "  ";
+    insert(cell3);
 
     tableHead.appendChild(row);
     table.appendChild(tableHead);
@@ -658,8 +726,8 @@ document.getElementById("dirs").addEventListener("click", () => {
 
 function addLibraryPath(path) {
   // getPathList;
-  console.log(path);
-  client.invoke("addLibraryPath", path, (error, res) => {
+  console.log(path[0]);
+  client.invoke("addLibraryPath", path[0], (error, res) => {
     if (error) {
       console.error(error);
     } else {
@@ -669,7 +737,7 @@ function addLibraryPath(path) {
       // it IS getting scanned, but update isn't working
       // TODO convert init into a promise
       clearEle(toSendView);
-      toSendViewRender();
+      //toSendViewRender();
       // this action, of course, runs perfectly
       pickLibraryLocation.style.display = "none";
 
@@ -763,9 +831,81 @@ function setJsonData(id, newTrait, tree) {
 }
 var data = [{ id: 121, items: [] }];
 
-tree = updateTree(67, data, tree);
+var tree = updateTree(67, data, tree);
 
-//
+// Define some functions so I can access the internal Data
+var showHistoryNodes;
+var refreshTree;
+
+//$.when(asyncCallLibrary()).done(function (result) {
+asyncCallLibrary().then(function () {
+  //console.log(result); // logs 1. should log json
+  //Make side-by-side
+  toSendViewRender();
+  // make tree
+  $.getScript("./dist/jstree.min.js", function () {
+    $(function () {
+      $("#jsFileTreeLibrary")
+        .on("changed.jstree", function (e, data) {
+          let i,
+            j = 0;
+
+          for (i = 0, j = data.selected.length; i < j; i++) {
+            let select = data.instance.get_node(data.selected[i]); //.text
+            console.log(select);
+            select.state.disabled = true;
+            $(this) // TODO This formatting Does Not Stick
+              .find("#" + select.id)
+              .css("color", "red");
+            //select.a_attr.class = ".jstree-default .jstree-historical";
+            if (select.original.hasOwnProperty("track_data")) {
+              // [id, name, type, size]
+              toSendAdd(select.original.track_data);
+            }
+            //$("#event_result").html("Selected: " + select.join(", "));
+            // .jstree-default .jstree-historical
+          }
+        })
+        .jstree({
+          core: {
+            data: [JSON.parse(libraryObj)],
+          },
+        })
+        .bind("loaded.jstree", function (e, data) {
+          displayHistory(1);
+          // once the tree is loaded
+          // do something to node with this identifier
+          // a: 'sub0B'
+          $("#jsFileTreeLibrary").jstree({ disabled: true }, { track_id: 1 });
+          $("#jsFileTreeLibrary").jstree("opened", "THAI", true);
+          //$("#testAsyncTree").jstree(true).select_node("THAI");
+          $("#jsFileTreeLibrary").jstree(true).select_node({ track_id: 1 });
+          //$("#testTree").jstree(false).select_node("Child node 1");
+          showHistoryNodes = function (ids) {
+            console.log("trying....");
+            ids.forEach((id) => {
+              console.log(id);
+              // select the node
+              let select = data.instance.get_node(id);
+              console.log(select);
+              select.icon = "glyphicon glyphicon-ok-circle";
+              // do things to node
+              // select.state.disabled = true;
+              $(this)
+                .find("#" + id)
+                .css("color", "red");
+            });
+          };
+          // Resets all formatting on tree
+          refreshTree = function () {
+            data.instance.refresh();
+          };
+        });
+    });
+    // $("#testTree").jstree("select_node", "Child node 23");
+    // $.jstree.reference("#testTree").select_node("Child node 23");
+  });
+});
 
 $.getScript("./dist/jstree.min.js", function () {
   $(function () {
@@ -776,9 +916,15 @@ $.getScript("./dist/jstree.min.js", function () {
           j,
           r = [];
         for (i = 0, j = data.selected.length; i < j; i++) {
-          r.push(data.instance.get_node(data.selected[i]).text);
+          let select = data.instance.get_node(data.selected[i]).original; //.text
+          //console.log(select);
+          if (select.hasOwnProperty("track_id")) {
+            // If selection is a track, add the ID to the array
+            // TODO send other information instead of querying database?
+            toSendAdd(select.track_id);
+          }
+          //$("#event_result").html("Selected: " + select.join(", "));
         }
-        $("#event_result").html("Selected: " + r.join(", "));
       })
       // create the instance
       .jstree({
