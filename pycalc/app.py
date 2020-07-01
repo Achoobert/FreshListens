@@ -205,12 +205,16 @@ def logFileReceived(userID, fileID):
 def addUser(userData):
     name = userData[0]
     location = userData[1]
-    # ???, user name, village LOCATION name
-    c.execute("INSERT OR IGNORE INTO users VALUES (?, ?s, ?s)",
-              "", name, location)
-    conn.commit()
-
-
+    #  user name, village LOCATION name
+    try:
+        c.execute("INSERT OR IGNORE INTO users VALUES (NULL, '" + name + "', '"+location+"')")
+        conn.commit()
+        return ("inserted")
+    except Exception as e:
+        if hasattr(e, 'message'):
+            return(getattr(e, 'message', str(e)))
+        else:
+            return(e)
 def getHistory(userID):
 
     historyArr = []
@@ -268,7 +272,7 @@ class libNode(NodeMixin):  # create new class with Node feature
             self.state = { "opened": "true" }
         self.parent = parent               # parent full path
         if children:
-            self.children = children       # possible both Dir and Track ???
+            self.children = children       # possible both Dir and Track 
 
 
 

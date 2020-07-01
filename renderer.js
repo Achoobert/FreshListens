@@ -24,7 +24,7 @@ let submitUser = document.querySelector("#submitUser");
 let users = document.querySelector("#users");
 
 let sendFiles = document.querySelector("#sendFiles");
-let todo = document.querySelector("#todo");
+
 let selected = document.querySelector("#selected");
 let toSendSize = document.querySelector("#toSendSize");
 let pickLibraryLocation = document.querySelector("#pickLibraryLocation");
@@ -127,8 +127,8 @@ function updateSelected() {
 let echoButton = document.querySelector("#echoButton");
 
 echoButton.addEventListener("click", () => {
-  console.log("click");
-  //libraryDatabaseInit();
+  //console.log("click");
+  libraryDatabaseInit();
   // console.log($("#testTree").jstree(true).get_node("Child node 23"));
   //$("#testTree").jstree(false).select_node("Child node 1");
   client.invoke("echo", "api.py -> app.py working", (error, res) => {
@@ -137,14 +137,10 @@ echoButton.addEventListener("click", () => {
       console.error(error);
     } else {
       echoButton.style.display = "none";
-      console.log(res);
+      //console.log(res);
     }
-    //toSendViewRender();
-    toSendView.style.display = "none";
-    //$().radio('dispose')
   });
 });
-
 echoButton.dispatchEvent(new Event("click"));
 ///// end debug
 
@@ -194,8 +190,12 @@ sendFiles.addEventListener("click", () => {
 
 getDrives.addEventListener("click", () => {
   console.log("clicked get drives");
-
+  getDrives.class = "btn btn-secondary active";
+  viewDrives.style.display = "block";
   toSendView.style.display = "none";
+  usersView.style.display = "none";
+  pickLibraryLocation.style.display = "none";
+  sendFiles.style.display = "none";
   clearEle(viewDrives);
   client.invoke("getDrives", (error, res) => {
     if (error) {
@@ -212,22 +212,45 @@ let loadLibrary = document.querySelector("#loadLibrary");
 loadLibrary.addEventListener("click", () => {
   console.log("click load libray");
   // TODO fix this
-  //toSendViewRender();
+  toSendView.style.display = "block";
+  sendFiles.style.display = "block";
+  usersView.style.display = "none";
+  pickLibraryLocation.style.display = "none";
+  viewDrives.style.display = "none";
 });
-//loadLibrary.dispatchEvent(new Event("click"));
+
 loadUsers.addEventListener("click", () => {
+  usersView.style.display = "block";
+  pickLibraryLocation.style.display = "none";
+  sendFiles.style.display = "none";
   toSendView.style.display = "none";
-  todo.style.display = "none";
+  viewDrives.style.display = "none";
   displayUserList();
 });
-loadUsers.dispatchEvent(new Event("click"));
+//$(function () {
+//loadUsers.dispatchEvent(new Event("click"));
+$("#loadUsers").click();
+//});
 //
+
+document.getElementById("showLocationFinder").addEventListener("click", () => {
+  pickLibraryLocation.style.display = "block";
+  sendFiles.style.display = "none";
+  toSendView.style.display = "none";
+  usersView.style.display = "none";
+});
 
 submitUser.addEventListener("click", () => {
   //refreshTree();
   showHistoryNodes(["1", "2", "3", "4"]);
+
   //toSendView.style.display = "none";
-  //console.log(newUserData.location.value, newUserData.userName.value);
+  pickLibraryLocation.style.display = "none";
+  sendFiles.style.display = "none";
+  toSendView.style.display = "none";
+  usersView.style.display = "none";
+  viewDrives.style.display = "block";
+  //console.log([newUserData.location.value, newUserData.userName.value]);
   addUser([newUserData.userName.value, newUserData.location.value]);
   //TODO update users list
 });
@@ -243,6 +266,11 @@ submitUser.addEventListener("click", () => {
  * @returns promise resolve {HTML userTable element}
  */
 function getUsers() {
+  toSendView.style.display = "none";
+  usersView.style.display = "block";
+  pickLibraryLocation.style.display = "none";
+  viewDrives.style.display = "none";
+  sendFiles.style.display = "none";
   return new Promise((resolve) => {
     client.invoke("getUsers", (error, res) => {
       if (error) {
@@ -268,6 +296,11 @@ function getUsers() {
  */
 function getLibrary() {
   //await libraryDatabaseInit();
+  pickLibraryLocation.style.display = "block";
+  sendFiles.style.display = "block";
+  toSendView.style.display = "none";
+  usersView.style.display = "none";
+  viewDrives.style.display = "none";
   return new Promise((resolve) => {
     client.invoke("getLibrary", (error, res) => {
       if (error) {
@@ -288,12 +321,13 @@ function getLibrary() {
  * @update call displayUserList()
  */
 function addUser(data) {
-  //console.log(data);
-  client.invoke("addUser", addUser.value, (error, res) => {
+  console.log(data);
+  client.invoke("addUser", data, (error, res) => {
     if (error) {
       console.error(error);
     } else {
       // update the user list
+      console.log(res);
       displayUserList();
     }
   });
@@ -459,7 +493,6 @@ function toSendUpdate(arr) {
  */
 function toSendViewRender() {
   clearEle(toSendView);
-  toSendView.style.display = "block";
   //console.log(getLibrary());
 
   //asyncCallLibrary().then((col1) => {
@@ -524,7 +557,8 @@ function moveSelected() {}
 function unMountDrive() {}
 
 /*
-  Takes a two dimensional array and returns a formatted html
+  Takes formated tree and puts it in an formatted html
+  to be aligned properly
   has to be .appendChild to the desired div element
   users.appendChild(createTable(res));
   TODO have event listener be a passed variable?
@@ -617,6 +651,7 @@ function createSendTable(tableData) {
       row.appendChild(cell);
     }
 
+    //TODO translations json/table
     cell0.innerHTML = "#";
     insert(cell0);
     cell1.innerHTML = "File Name";
@@ -652,7 +687,7 @@ function createDriveTable(tableData) {
       cell.addEventListener("click", function () {
         selectedDrive = rowData;
         updateSelected();
-        viewDrives.style.display = "none";
+        loadLibrary.dispatchEvent(new Event("click"));
       });
       row.appendChild(cell);
     });
@@ -680,7 +715,7 @@ function createUserTable(tableData) {
         updateSelected();
         // display selection
         displayHistory(rData[0]);
-        usersView.style.display = "none";
+        getDrives.dispatchEvent(new Event("click"));
       });
       row.appendChild(cell);
     });
@@ -691,33 +726,7 @@ function createUserTable(tableData) {
   table.appendChild(tableBody);
   return table;
 }
-function createHistoryTable(tableData) {
-  var table = document.createElement("table");
-  var tableBody = document.createElement("tbody");
 
-  tableData.forEach(function (rowData1) {
-    var row = document.createElement("tr");
-    rowData1.forEach(function (rowData) {
-      rowData.forEach(function (cellData) {
-        if (cellData != rowData[0]) {
-          var cell = document.createElement("td");
-          cell.appendChild(document.createTextNode(cellData));
-          row.appendChild(cell);
-        }
-      });
-    });
-
-    tableBody.appendChild(row);
-  });
-
-  table.appendChild(tableBody);
-  return table;
-}
-
-document.getElementById("showLocationFinder").addEventListener("click", () => {
-  toSendView.style.display = "none";
-  pickLibraryLocation.style.display = "block";
-});
 const { dialog } = require("electron").remote;
 
 document.getElementById("dirs").addEventListener("click", () => {
@@ -778,45 +787,12 @@ var fixHelperModified = function (e, tr) {
     });
 };*/
 
-// jsfiletree expect 'text' for the user 'view'
-// does not have to be unique
-
-function getFileTree() {
-  return {
-    text: "root",
-    children: [
-      {
-        text: "Root Node Import",
-        state: { opened: true },
-        a: "sub0",
-        children: [
-          {
-            a: "sub0A",
-            b: "foo",
-            icon: "glyphicon glyphicon-cd",
-          },
-          {
-            text: "test here",
-            a: "sub0B",
-            icon: "glyphicon glyphicon-cd",
-          },
-        ],
-      },
-      {
-        a: "sub1",
-      },
-    ],
-  };
+//import updateTree from jstree
+function updateTree(a, b, c) {
+  // TODO fix this
+  return 1;
 }
 
-function setJsonData(identifier, newTrait, jsonObj) {
-  for (var i = 0; i < jsonObj.length; i++) {
-    if (jsonObj[i].Id === id) {
-      jsonObj[i].Username = newUsername;
-      return;
-    }
-  }
-}
 function setJsonData(id, newTrait, tree) {
   if (tree.hasOwnProperty(tree.track_id)) {
     if (tree.track_id === id) {
@@ -846,6 +822,9 @@ asyncCallLibrary().then(function () {
   $.getScript("./dist/jstree.min.js", function () {
     $(function () {
       $("#jsFileTreeLibrary")
+        /*
+         * On click
+         */
         .on("changed.jstree", function (e, data) {
           let i,
             j = 0;
@@ -866,11 +845,18 @@ asyncCallLibrary().then(function () {
             // .jstree-default .jstree-historical
           }
         })
+        /*
+         * Make the tree from the json data
+         */
         .jstree({
           core: {
             data: [JSON.parse(libraryObj)],
           },
         })
+        /*
+         * When tree is loaded
+         * Functions can be called from outside
+         */
         .bind("loaded.jstree", function (e, data) {
           displayHistory(1);
           // once the tree is loaded
@@ -881,6 +867,8 @@ asyncCallLibrary().then(function () {
           //$("#testAsyncTree").jstree(true).select_node("THAI");
           $("#jsFileTreeLibrary").jstree(true).select_node({ track_id: 1 });
           //$("#testTree").jstree(false).select_node("Child node 1");
+
+          // This is a global function
           showHistoryNodes = function (ids) {
             console.log("trying....");
             ids.forEach((id) => {
@@ -901,98 +889,13 @@ asyncCallLibrary().then(function () {
             data.instance.refresh();
           };
         });
-    });
-    // $("#testTree").jstree("select_node", "Child node 23");
-    // $.jstree.reference("#testTree").select_node("Child node 23");
-  });
-});
-
-$.getScript("./dist/jstree.min.js", function () {
-  $(function () {
-    $("#testTree")
-      // listen for click event
-      .on("changed.jstree", function (e, data) {
-        var i,
-          j,
-          r = [];
-        for (i = 0, j = data.selected.length; i < j; i++) {
-          let select = data.instance.get_node(data.selected[i]).original; //.text
-          //console.log(select);
-          if (select.hasOwnProperty("track_id")) {
-            // If selection is a track, add the ID to the array
-            // TODO send other information instead of querying database?
-            toSendAdd(select.track_id);
-          }
-          //$("#event_result").html("Selected: " + select.join(", "));
-        }
-      })
-      // create the instance
-      .jstree({
-        core: {
-          data: [
-            {
-              text: "Root node",
-              state: { opened: true },
-              children: [
-                {
-                  text: "Child node 1",
-                  state: { selected: true },
-                  icon: "glyphicon glyphicon-cd",
-                },
-                {
-                  text: "Child node 2",
-                  state: { disabled: true },
-                },
-                {
-                  text: "Child dir 1",
-                  state: { opened: true },
-                  children: [
-                    {
-                      text: "Child node 23",
-                      icon: "	glyphicon glyphicon-saved",
-                    },
-                  ],
-                },
-              ],
-            },
-            getFileTree(),
-            {
-              text: "Root node2",
-              state: { opened: false },
-              children: [
-                {
-                  text: "Child node 1",
-                  icon: ".glyphicon glyphicon-flash",
-                },
-                {
-                  text: "Child node 2",
-                  state: { disabled: true },
-                },
-                {
-                  text: "Child dir 1",
-                  state: { opened: true },
-                  children: [
-                    {
-                      text: "Child node 3",
-                      icon: ".glyphicon glyphicon-flash",
-                    },
-                  ],
-                },
-              ],
-            }, //
-          ],
-        },
-      })
-      .bind("loaded.jstree", function (e, data) {
-        // once the tree is loaded
-        debugger;
-        //$("#tree").jstree("select_node", "#ref565", true);
-        // do something to node with this identifier
-        // a: 'sub0B'
-        $("#testTree").jstree(true).select_node("Child node 23");
-        $("#testTree").jstree(false).select_node("Child node 1");
+      $("#jsFileTreeLibrary").on("changed.jstree", function (e, data) {
+        //$("#testTree").jstree().refresh();
+        console.log("The selected (library) nodes are:");
+        console.log(data.selected);
+        //debugger;
+        //console.log($("#testTree").jstree(data).delete_node(data));
       });
+    });
   });
-  // $("#testTree").jstree("select_node", "Child node 23");
-  // $.jstree.reference("#testTree").select_node("Child node 23");
 });

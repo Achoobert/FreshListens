@@ -25,6 +25,25 @@ class Api(object):
                 return("api works but cannot init " + (getattr(e, 'message', str(e))))
             else:
                 return(e)
+    def addUser(self,userData):
+        """based on the input text, return the int result"""
+        try:
+            return app.addUser(userData)
+        except Exception as e:
+            return e
+            if hasattr(e, 'message'):
+                return("api works but cannot get library " + (getattr(e, 'message', str(e))))
+            else:
+                return e
+    def addLibraryPath(self, newPath):
+        """Return list of drives"""
+        try:
+            return app.addLibraryPath(newPath)
+        except Exception as e:
+            if hasattr(e, 'message'):
+                return("cannot " + (getattr(e, 'message', str(e))))
+            else:
+                return(e)
     def echo(self, text):
         """send any text to app.py to get echoed"""
         try:
@@ -62,38 +81,23 @@ class Api(object):
                 return("api works but cannot get library " + (getattr(e, 'message', str(e))))
             else:
                 return(e)
-    def sendFiles(self, dataArr):        
-        """based on the input text, return the int result"""
-        try:
-            # toSend, currentUser, selectedDrive
-            return app.sendFiles(dataArr)
-        except Exception as e:
-            return (str(e))
-    def addUser(self,userData):
-        """based on the input text, return the int result"""
-        try:
-            return app.addUser(userData)
-        except Exception as e:
-            return "error not inserted"
     def get_drive_info(self):
         """Return list of drives"""
         try:
             return app.get_drive_info()
         except Exception as e:
-            return (str(e))
-    def addLibraryPath(self, newPath):
-        """Return list of drives"""
-        try:
-            return app.addLibraryPath(newPath)
-        except Exception as e:
-            if hasattr(e, 'message'):
-                return("cannot " + (getattr(e, 'message', str(e))))
-            else:
-                return(e)
+            return (str(e))  
     def getPathList(self):
         """Return list of drives"""
         try:
             return app.getPathList()
+        except Exception as e:
+            return (str(e))          
+    def sendFiles(self, dataArr):        
+        """based on the input text, return the int result"""
+        try:
+            # toSend, currentUser, selectedDrive
+            return app.sendFiles(dataArr)
         except Exception as e:
             return (str(e))
     def libraryDatabaseInit(self):
