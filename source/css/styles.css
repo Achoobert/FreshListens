@@ -101,6 +101,12 @@ td {
 .ui-sortable-handle:hover {
   cursor: s-resize;
 }
+.ui-deleteable-handle:hover {
+  cursor: pointer;
+}
+.ui-selectable-handle:hover {
+  cursor: pointer;
+}
 #sortable {
   list-style-type: none;
   margin: 0;

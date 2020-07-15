@@ -20,55 +20,88 @@ client.connect("tcp://127.0.0.1:4242");
 let loadUsers = document.querySelector("#loadUsers");
 let getDrives = document.querySelector("#getDrives");
 let viewDrives = document.querySelector("#viewDrives");
+let viewDriveTable = document.querySelector("#viewDriveTable");
 let submitUser = document.querySelector("#submitUser");
 let users = document.querySelector("#users");
 
 let sendFiles = document.querySelector("#sendFiles");
+let scanLibrary = document.querySelector("#scanLibrary");
 
 let selected = document.querySelector("#selected");
 let toSendSize = document.querySelector("#toSendSize");
-let pickLibraryLocation = document.querySelector("#pickLibraryLocation");
+let libraryLocation = document.querySelector("#libraryLocation");
+let libraryLocationTable = document.querySelector("#libraryLocationTable");
 
 // Global variables
 // view variables
 // Cashing the library html element
 var libraryObj;
-var libraryChecked = 0;
+var libraryLatest = 0;
 
 /**
  * @function asyncCallLibrary
- *  update/ init the library element
+ *  get the the library JSON object
+ *  but check if already local
  * @update libraryObj
  * @return promise resolve {htmlObject}
  */
 async function asyncCallLibrary() {
-  // only run this if new paths have been added
   return new Promise((resolve) => {
-    if (libraryChecked == 0) {
-      libraryDatabaseInit().then(() => {
-        getLibrary().then((result) => {
-          libraryObj = result;
-          //console.log(result);
-          resolve(result);
-        });
+    if (libraryLatest == 0) {
+      getLibrary().then((result) => {
+        libraryObj = result;
+        resolve(result);
       });
     } else {
-      console.log("saved a request!");
+      libraryLatest = 1;
       resolve(libraryObj);
     }
+  });
+}
+/**
+ * @function asyncUpdateLibrary
+ *  update the library
+ * @update libraryObj
+ * @return promise resolve {htmlObject}
+ */
+async function asyncUpdateLibrary(path) {
+  // only run this if new paths have been added
+  return new Promise((resolve) => {
+    libraryDatabaseRecheck(path).then(() => {
+      getLibrary().then((result) => {
+        libraryObj = result;
+        //console.log(result);
+        resolve(result);
+      });
+    });
+  });
+}
+/**
+ * @function asyncCheckLibrary
+ *  update the library
+ * @update libraryObj
+ * @return promise resolve {htmlObject}
+ */
+async function asyncCheckLibrary() {
+  // only run this if user tells up to
+  return new Promise((resolve) => {
+    libraryDatabaseRecheck().then(() => {
+      // library data might be old
+      libraryLatest = 0;
+      asyncCallLibrary().then((result) => {
+        resolve(result);
+      });
+    });
   });
 }
 
 // user selection variables
 // If use push, important to initialize
-var currentUser = [1, "John", "city"];
+var currentUser = [];
 var currentHistory = [];
+var selectedDrive = [];
 // currently selected tracks to send to drive
-var toSend = [
-  [1, "11โต๋  - ขอบพระคุณ", "audio", 3899303],
-  [22, "argerr", "audio", 38903],
-  [43, "songg", "audio", 99303],
-];
+var toSend = [];
 var fileTypesSend = [];
 var totalSendSize = 0;
 /**
@@ -92,8 +125,6 @@ function bytesConvert(bytes) {
   }
   return bytes;
 }
-// selected drive
-var selectedDrive = ["D:", "ThumbDrive"];
 
 /**
  * @function updateSelected
@@ -128,7 +159,6 @@ let echoButton = document.querySelector("#echoButton");
 
 echoButton.addEventListener("click", () => {
   //console.log("click");
-  libraryDatabaseInit();
   // console.log($("#testTree").jstree(true).get_node("Child node 23"));
   //$("#testTree").jstree(false).select_node("Child node 1");
   client.invoke("echo", "api.py -> app.py working", (error, res) => {
@@ -146,25 +176,24 @@ echoButton.dispatchEvent(new Event("click"));
 
 // Make a single page app
 let usersView = document.querySelector("#usersView");
-let userView = document.querySelector("#userView");
 let toSendView = document.querySelector("#toSendView");
 let newUserData = document.querySelector("#newUserData");
 
 /**
- * @function libraryDatabaseInit
+ * @function libraryDatabaseRecheck
  *  Tell python to re-scan all library directories
  * @update SQLite library
  */
-function libraryDatabaseInit() {
+function libraryDatabaseRecheck() {
   return new Promise((resolve) => {
-    client.invoke("libraryDatabaseInit", (error, res) => {
+    client.invoke("libraryDatabaseRecheck", (error, res) => {
       if (error) {
         console.error(error);
         // retry
-        resolve(libraryDatabaseInit());
+        resolve(libraryDatabaseRecheck());
       } else {
         console.log("Library checked " + res);
-        libraryChecked = 1;
+        libraryLatest = 1;
         resolve(1);
       }
     });
@@ -175,7 +204,7 @@ sendFiles.addEventListener("click", () => {
   console.log([toSend, currentUser[0], selectedDrive[0]]);
   client.invoke(
     "sendFiles",
-    [toSend, currentUser, selectedDrive[0]],
+    [toSend, currentUser[0], selectedDrive[0]],
     (error, res) => {
       if (error) {
         console.error(error);
@@ -188,21 +217,39 @@ sendFiles.addEventListener("click", () => {
 });
 //sendFiles.dispatchEvent(new Event("click"));
 
+scanLibrary.addEventListener("click", () => {
+  console.log("click");
+  debugger;
+  client.invoke("libraryDatabaseRecheck", (error, res) => {
+    if (error) {
+      console.error(error);
+    } else {
+      console.log(res);
+    }
+  });
+});
+
+function displayNone() {
+  toSendView.style.display = "none";
+  usersView.style.display = "none";
+  libraryLocation.style.display = "none";
+  sendFiles.style.display = "none";
+  viewDrives.style.display = "none";
+}
+
 getDrives.addEventListener("click", () => {
   console.log("clicked get drives");
   getDrives.class = "btn btn-secondary active";
+  displayNone();
   viewDrives.style.display = "block";
-  toSendView.style.display = "none";
-  usersView.style.display = "none";
-  pickLibraryLocation.style.display = "none";
-  sendFiles.style.display = "none";
-  clearEle(viewDrives);
+  viewDriveTable.style.display = "block";
+  clearEle(viewDriveTable);
   client.invoke("getDrives", (error, res) => {
     if (error) {
       console.error(error);
-      viewDrives.textContent = "drive search busted";
+      viewDriveTable.textContent = "drive search busted";
     } else {
-      viewDrives.appendChild(createDriveTable(res));
+      viewDriveTable.appendChild(createDriveTable(res));
     }
   });
 });
@@ -210,45 +257,37 @@ getDrives.addEventListener("click", () => {
 
 let loadLibrary = document.querySelector("#loadLibrary");
 loadLibrary.addEventListener("click", () => {
-  console.log("click load libray");
+  console.log("click load library");
   // TODO fix this
+  displayNone();
   toSendView.style.display = "block";
   sendFiles.style.display = "block";
-  usersView.style.display = "none";
-  pickLibraryLocation.style.display = "none";
-  viewDrives.style.display = "none";
 });
 
 loadUsers.addEventListener("click", () => {
+  displayNone();
   usersView.style.display = "block";
-  pickLibraryLocation.style.display = "none";
-  sendFiles.style.display = "none";
-  toSendView.style.display = "none";
-  viewDrives.style.display = "none";
+  users.style.display = "block";
   displayUserList();
 });
 //$(function () {
 //loadUsers.dispatchEvent(new Event("click"));
-$("#loadUsers").click();
+//$("#loadUsers").click();
 //});
 //
 
 document.getElementById("showLocationFinder").addEventListener("click", () => {
-  pickLibraryLocation.style.display = "block";
-  sendFiles.style.display = "none";
-  toSendView.style.display = "none";
-  usersView.style.display = "none";
+  displayNone();
+  displayPathList();
+  //libraryLocation.appendChild(getPathList());
+  libraryLocation.style.display = "block";
 });
 
 submitUser.addEventListener("click", () => {
   //refreshTree();
-  showHistoryNodes(["1", "2", "3", "4"]);
+  //showHistoryNodes(["1", "2", "3", "4"]);
 
-  //toSendView.style.display = "none";
-  pickLibraryLocation.style.display = "none";
-  sendFiles.style.display = "none";
-  toSendView.style.display = "none";
-  usersView.style.display = "none";
+  displayNone();
   viewDrives.style.display = "block";
   //console.log([newUserData.location.value, newUserData.userName.value]);
   addUser([newUserData.userName.value, newUserData.location.value]);
@@ -266,11 +305,9 @@ submitUser.addEventListener("click", () => {
  * @returns promise resolve {HTML userTable element}
  */
 function getUsers() {
-  toSendView.style.display = "none";
+  displayNone();
   usersView.style.display = "block";
-  pickLibraryLocation.style.display = "none";
-  viewDrives.style.display = "none";
-  sendFiles.style.display = "none";
+  users.style.display = "block";
   return new Promise((resolve) => {
     client.invoke("getUsers", (error, res) => {
       if (error) {
@@ -295,23 +332,67 @@ function getUsers() {
  * @returns promise resolve {HTML LibraryTable element}
  */
 function getLibrary() {
-  //await libraryDatabaseInit();
-  pickLibraryLocation.style.display = "block";
-  sendFiles.style.display = "block";
-  toSendView.style.display = "none";
-  usersView.style.display = "none";
-  viewDrives.style.display = "none";
+  //await libraryDatabaseRecheck();
+  displayNone();
+  //usersView.style.display = "block";
   return new Promise((resolve) => {
     client.invoke("getLibrary", (error, res) => {
       if (error) {
         console.error(error);
         resolve(getLibrary());
       } else {
-        console.log(JSON.parse(res));
+        //console.log(JSON.parse(res));
         resolve(res);
       }
     });
   });
+}
+
+/**
+ * @function getPathList
+ *  Call the python api, get PathList array
+ *      this returns [location]
+ *          send data to be made into HTML user table
+ * @returns promise resolve {HTML LibraryTable element}
+ */
+function getPathList() {
+  return new Promise((resolve) => {
+    client.invoke("getPathList", (error, res) => {
+      if (error) {
+        console.error(error);
+        // try again
+        resolve(getPathList());
+      } else if (res == undefined || res.length == 0 || res == false) {
+        console.log("no Paths");
+        resolve(false);
+      } else {
+        resolve(res);
+      }
+    });
+  });
+}
+
+/**
+ * @function displayPathList
+ *  update/ init the library element
+ * @update DOM: 'users'
+ */
+function displayPathList() {
+  clearEle(libraryLocationTable);
+  displayNone();
+  libraryLocation.style.display = "block";
+  async function asyncCall() {
+    const result = await getPathList();
+    console.log(result);
+    // make the table, then append
+    if (result === false) {
+      return;
+    }
+    libraryLocationTable.appendChild(createPathTable(result));
+    //users.appendChild(result);
+    return result;
+  }
+  asyncCall();
 }
 
 /**
@@ -334,87 +415,38 @@ function addUser(data) {
 }
 
 /**
- * @function displayHistory
- *  update/ elements in library which match history
- * @param int user id
- * @update DOM:
- */
-function displayHistory(userId) {
-  //TODO check this
-  // arr = getHistory(userId)
-  //console.log($("#jsFileTreeLibrary li").find("#1").css("color", "red"));
-  //$("#jsFileTreeLibrary li").find("#j2_2_anchor").css("color", "red");
-  console.log(
-    $("#jsFileTreeLibrary li").find("#j2_3_anchor").css("color", "red")
-  );
-  console.log(
-    $("#jsFileTreeLibrary #j2_3_anchor").find("j2_4_anchor").css("color", "red")
-  );
-  console.log(
-    $("#jsFileTreeLibrary")
-      .find("li")
-      .find("li")
-      .find("#j2_4_anchor")
-      .css("color", "red")
-  );
-  console.log($("#jsFileTreeLibrary li").find("#1_anchor").css("color", "red"));
-  console.log($("#jsFileTreeLibrary li").find("#9").css("color", "red"));
-
-  arr = [1, 2, 3, 4, 5, 6];
-  arr.forEach((element) => {
-    // a) do some jquery
-    // find node where
-    //$("#myTable tbody").append(makeFileRow(data));
-    //$("#testTree li").css("color", "red");
-    //debugger;
-    $("#jsFileTreeLibrary li")
-      .find("#1") //+ toString(1)
-      .css("color", "red");
-    /*
-    id="jsFileTreeLibrary"
-    role="tree"
-    class="jstree jstree-2 jstree-default"
-
-    fine where
-    li
-    role="treeitem"
-    id="1"
-
-    update the
-    a / i jstree icon?
-    */
-    // update node properties
-    //refresh whole tree?
-    // b) edit the json tree
-    //open tree
-    //edit nodes
-    //rebuild the jstree somehow
-    //
-    // c) Update from within the jquery
-    // that initially built the tree
-    // can it update later if user changes?
-  });
-}
-/**
  * @function getHistory
  *  get user history
  * @param int user id
  */
 function getHistory(userId) {
-  client.invoke("getHistory", userId, (error, res) => {
-    if (error) {
-      console.error(error);
-    } else {
-      if (res == null) {
-        console.log("no history returned");
-      } else if (res.length == 0) {
-        currentHistory = res;
-        return res;
+  let getter = new Promise((resolve, reject) => {
+    client.invoke("getHistory", userId, (error, res) => {
+      if (error) {
+        console.error(error);
       } else {
-        currentHistory = res;
-        return res;
+        if (res == null || res == undefined) {
+          console.log("no history returned");
+          currentHistory = [];
+          resolve(currentHistory);
+          //return [1];
+        } else if (res.length == 0) {
+          console.log("No Data...");
+          currentHistory = [];
+          resolve(currentHistory);
+          //return [1];
+        } else {
+          currentHistory = res;
+          resolve(currentHistory);
+          //return res;
+        }
       }
-    }
+    });
+  });
+
+  getter.then((arr) => {
+    console.log(arr);
+    displayHistory(arr);
   });
 }
 
@@ -424,8 +456,6 @@ function getHistory(userId) {
  * @update DOM: 'users'
  */
 function displayUserList() {
-  usersView.style.display = "block";
-  //userView.style.display = "none";
   clearEle(users);
   async function asyncCallUsers() {
     const result = await getUsers();
@@ -452,7 +482,7 @@ function toSendAdd(data) {
   }
   updateSelected();
   // make file row turns array into valid html tr row
-  $("#myTable tbody").append(makeFileRow(data));
+  $("#myTable tbody").append(makeSortFileRow(data));
 }
 
 /**
@@ -464,12 +494,11 @@ function toSendAdd(data) {
  */
 function toSendRemove(data) {
   toSend = toSend.filter(function (ele) {
-    if (ele[0] == data[0]) {
-      console.log(ele);
-    }
     return ele[0] != data[0];
   });
   // TODO re-enable selection of track from library
+  reEnableDeleted([data[0]]);
+  // reduce total send size
   totalSendSize = totalSendSize - data[3];
   updateSelected();
 }
@@ -493,9 +522,6 @@ function toSendUpdate(arr) {
  */
 function toSendViewRender() {
   clearEle(toSendView);
-  //console.log(getLibrary());
-
-  //asyncCallLibrary().then((col1) => {
   var col1 = createLibraryTable();
   var col2 = createSendTable(toSend);
   toSendView.appendChild(sideBySide([col1, col2]));
@@ -515,7 +541,6 @@ function toSendViewRender() {
           let r = [];
           for (var key in row.children) {
             if (row.children.hasOwnProperty(key)) {
-              // cell : console.log(row.children[key].textContent);
               r.push(row.children[key].textContent);
             }
           }
@@ -545,7 +570,6 @@ function sideBySide(tables) {
   let row = document.createElement("row");
   row.setAttribute("class", "row");
   tables.forEach(function (table) {
-    //console.log(tables);
     row.appendChild(table);
   });
   container.appendChild(row);
@@ -564,50 +588,29 @@ function unMountDrive() {}
   TODO have event listener be a passed variable?
 */
 function createLibraryTable() {
-  // formatting box
-  var outerBox = document.createElement("outerBox");
   var jsFileTreeLibrary = document.createElement("jsFileTreeLibrary");
   jsFileTreeLibrary.setAttribute("id", "jsFileTreeLibrary");
-  outerBox.setAttribute("class", "col-lg-12");
-  outerBox.appendChild(jsFileTreeLibrary);
-  return outerBox;
+  // formatting box
+  return makeOuterBox(jsFileTreeLibrary);
 }
 function createTable(tableData) {
   var table = document.createElement("table");
   var tableBody = document.createElement("tbody");
-
   tableData.forEach(function (rowData) {
-    var row = document.createElement("tr");
-    rowData.forEach(function (cellData) {
-      // This may cause bug later
-      // TODO clever solution
-      // filtering out extra location via length. very dumb
-      //if (cellData != rowData[3]) {
-      var cell = document.createElement("td");
-      cell.appendChild(document.createTextNode(cellData));
-      // Click listener for row
-      cell.addEventListener("click", function (rowData) {
-        // alert data ID
-        alert(rowData[0]);
-      });
-      row.appendChild(cell);
-      //}
-    });
-
-    tableBody.appendChild(row);
+    //skips the third element in array though
+    tableBody.appendChild(makeFileRow(rowData));
   });
-
   table.appendChild(tableBody);
-  return table;
+  return makeOuterBox(table);
 }
 /*
-  Takes a 1 dimensional array and returns a draggable row
+  Takes a 1 dimensional array and returns a row
 */
 function makeFileRow(rowData) {
+  console.log(rowData);
   let row = document.createElement("tr");
   row.setAttribute("id", rowData[0]);
   row.setAttribute("key", rowData);
-  row.setAttribute("class", "ui-sortable-handle");
   rowData.forEach(function (cellData) {
     if (cellData != rowData[3]) {
       var cell = document.createElement("td");
@@ -616,69 +619,62 @@ function makeFileRow(rowData) {
       row.appendChild(cell);
     }
   });
+  return row;
+}
+// return a non-sortable tableHead le
+function createHeader(hData) {
+  var tableHead = document.createElement("thead");
+  let row = makeFileRow(hData);
+  return tableHead.appendChild(row);
+}
+/*
+  Takes a 1 dimensional array and returns a draggable, deleteable row
+*/
+function makeSortFileRow(rowData) {
+  let row = makeFileRow(rowData);
+  row.setAttribute("class", "ui-sortable-handle");
   // add remove onClick cell
   // glyphicon glyphicon-trash
-  var cell = document.createElement("td");
-  // TODO use a proper ICON here, instead of unicode emoji
+  let cell = document.createElement("td");
+  cell.setAttribute("class", "ui-deleteable-handle");
   cell.appendChild(document.createTextNode("✖"));
   cell.addEventListener("click", function () {
     toSendRemove(rowData);
     $(this).parent().remove();
-    console.log(toSend);
+    // TODO UnDisable the tree node
+    // jsTreeEnableNode($(this).parent())
   });
-  //append to form element that you want .
   row.appendChild(cell);
+
   return row;
 }
-function createSendTable(tableData) {
-  // formatting box
+function makeOuterBox(table) {
   var outerBox = document.createElement("outerBox");
   outerBox.setAttribute("class", "col-lg-12");
+  outerBox.appendChild(table);
+  return outerBox;
+}
+function createSendTable(tableData) {
   // table formatting
   var table = document.createElement("table");
   table.setAttribute("class", "table table-hover");
   table.setAttribute("id", "myTable");
   // make a non-sortable tableHead and attach it to the table
-  function createHeader() {
-    var tableHead = document.createElement("thead");
-    let row = document.createElement("tr");
-    // tried to slim this down to a single cell. TODO may need to make cell class?
-    let cell0 = document.createElement("th");
-    let cell1 = document.createElement("th");
-    let cell2 = document.createElement("th");
-    let cell3 = document.createElement("th");
-    function insert(cell) {
-      row.appendChild(cell);
-    }
-
-    //TODO translations json/table
-    cell0.innerHTML = "#";
-    insert(cell0);
-    cell1.innerHTML = "File Name";
-    insert(cell1);
-    cell2.innerHTML = "Type";
-    insert(cell2);
-    cell3.innerHTML = "  ";
-    insert(cell3);
-
-    tableHead.appendChild(row);
-    table.appendChild(tableHead);
-  }
-  createHeader();
+  table.appendChild(createHeader(["#", "File Name", "Type", "", "  "]));
   var tableBody = document.createElement("tbody");
   tableBody.setAttribute("class", "ui-sortable");
   //create body
   tableData.forEach(function (rowData) {
-    tableBody.appendChild(makeFileRow(rowData));
+    tableBody.appendChild(makeSortFileRow(rowData));
   });
   table.appendChild(tableBody);
-  outerBox.appendChild(table);
-  return outerBox;
+  // formatting box
+  return makeOuterBox(table);
 }
 function createDriveTable(tableData) {
   var table = document.createElement("table");
   var tableBody = document.createElement("tbody");
-
+  tableBody.setAttribute("class", "ui-sortable");
   tableData.forEach(function (rowData) {
     var row = document.createElement("tr");
     rowData.forEach(function (cellData) {
@@ -696,14 +692,21 @@ function createDriveTable(tableData) {
   });
 
   table.appendChild(tableBody);
-  return table;
+  // formatting box
+  return makeOuterBox(table);
 }
 function createUserTable(tableData) {
   var table = document.createElement("table");
+  table.setAttribute("id", "userTable");
+  // make a non-sortable tableHead and attach it to the table
+  table.appendChild(createHeader(["#", "Name", "Location"]));
+
   var tableBody = document.createElement("tbody");
+  tableBody.setAttribute("class", "ui-sortable");
 
   tableData.forEach(function (rowData) {
     var row = document.createElement("tr");
+    row.setAttribute("class", "ui-selectable-handle");
     let rData = rowData;
     rowData.forEach(function (cellData) {
       var cell = document.createElement("td");
@@ -714,7 +717,7 @@ function createUserTable(tableData) {
         currentUser = rData;
         updateSelected();
         // display selection
-        displayHistory(rData[0]);
+        getHistory(rData[0]);
         getDrives.dispatchEvent(new Event("click"));
       });
       row.appendChild(cell);
@@ -724,9 +727,30 @@ function createUserTable(tableData) {
   });
 
   table.appendChild(tableBody);
-  return table;
+  // formatting box
+  return makeOuterBox(table);
 }
+function createPathTable(tableData) {
+  var table = document.createElement("table");
+  table.setAttribute("id", "pathTable");
+  // make a non-sortable tableHead and attach it to the table
+  table.appendChild(createHeader(["Location"]));
 
+  var tableBody = document.createElement("tbody");
+  tableBody.setAttribute("class", "ui-selectable");
+  console.log(tableData);
+  tableData.forEach(function (rowData) {
+    var row = document.createElement("tr");
+    row.setAttribute("class", "ui-selectable-handle");
+    var cell = document.createElement("td");
+    cell.appendChild(document.createTextNode(rowData));
+    row.appendChild(cell);
+    tableBody.appendChild(row);
+  });
+  table.appendChild(tableBody);
+  // formatting box
+  return makeOuterBox(table);
+}
 const { dialog } = require("electron").remote;
 
 document.getElementById("dirs").addEventListener("click", () => {
@@ -734,7 +758,7 @@ document.getElementById("dirs").addEventListener("click", () => {
 });
 
 function addLibraryPath(path) {
-  // getPathList;
+  // displayPathList();
   console.log(path[0]);
   client.invoke("addLibraryPath", path[0], (error, res) => {
     if (error) {
@@ -746,9 +770,11 @@ function addLibraryPath(path) {
       // it IS getting scanned, but update isn't working
       // TODO convert init into a promise
       clearEle(toSendView);
-      //toSendViewRender();
-      // this action, of course, runs perfectly
-      pickLibraryLocation.style.display = "none";
+      asyncUpdateLibrary(path[0]).then(function () {
+        toSendViewRefresh();
+        displayPathList();
+      });
+      libraryLocation.style.display = "none";
 
       // remove add library button
     }
@@ -775,18 +801,7 @@ var fixHelperModified = function (e, tr) {
     $(this).width($originals.eq(index).width());
   });
   return $helper;
-}; /*,
-  updateIndex = function (e, ui) {
-    alert("hi");
-    console.log(e);
-    $("td.index", ui.item.parent()).each(function (i) {
-      $(this).html(i + 1);
-    });
-    $("input[type=text]", ui.item.parent()).each(function (i) {
-      $(this).val(i + 1);
-    });
-};*/
-
+};
 //import updateTree from jstree
 function updateTree(a, b, c) {
   // TODO fix this
@@ -810,8 +825,7 @@ var data = [{ id: 121, items: [] }];
 var tree = updateTree(67, data, tree);
 
 // Define some functions so I can access the internal Data
-var showHistoryNodes;
-var refreshTree;
+var refreshTree, reEnableDeleted, displayHistory;
 
 //$.when(asyncCallLibrary()).done(function (result) {
 asyncCallLibrary().then(function () {
@@ -858,18 +872,19 @@ asyncCallLibrary().then(function () {
          * Functions can be called from outside
          */
         .bind("loaded.jstree", function (e, data) {
-          displayHistory(1);
-          // once the tree is loaded
-          // do something to node with this identifier
-          // a: 'sub0B'
-          $("#jsFileTreeLibrary").jstree({ disabled: true }, { track_id: 1 });
-          $("#jsFileTreeLibrary").jstree("opened", "THAI", true);
-          //$("#testAsyncTree").jstree(true).select_node("THAI");
-          $("#jsFileTreeLibrary").jstree(true).select_node({ track_id: 1 });
-          //$("#testTree").jstree(false).select_node("Child node 1");
+          // once library is loaded, display the first page
+          loadUsers.dispatchEvent(new Event("click"));
 
-          // This is a global function
-          showHistoryNodes = function (ids) {
+          // ~~~~~~~~~~~~~~~~~~~~ //
+          ///// global start //////
+          /**
+           * @function displayHistory
+           *  update/ elements in library which match history
+           * @param int user id
+           * @update DOM:
+           */
+
+          displayHistory = function (ids) {
             console.log("trying....");
             ids.forEach((id) => {
               console.log(id);
@@ -883,7 +898,47 @@ asyncCallLibrary().then(function () {
                 .find("#" + id)
                 .css("color", "red");
             });
+            // a) do some jquery
+            // find node where
+            //$("#myTable tbody").append(makeFileRow(data));
+            //$("#testTree li").css("color", "red");
+            $("#jsFileTreeLibrary li")
+              .find("#" + element) //+ toString(1)
+              .css("color", "red");
+            /*
+            id="jsFileTreeLibrary"
+            role="tree"
+            class="jstree jstree-2 jstree-default"
+
+            fine where
+            li
+            role="treeitem"
+            id="1"
+
+            update the
+            a / i jstree icon?
+            */
+            // update node properties
+            //refresh whole tree?
+            // b) edit the json tree
+            //open tree
+            //edit nodes
+            //rebuild the jstree somehow
+            //
+            // c) Update from within the jquery
+            // that initially built the tree
+            // can it update later if user changes?
           };
+          reEnableDeleted = function (ids) {
+            ids.forEach((id) => {
+              let select = data.instance.get_node(id);
+              //console.log(select);
+              // do things to node
+              select.state.disabled = false;
+            });
+          };
+          ///// global end //////
+          // ~~~~~~~~~~~~~~~~~~~~ //
           // Resets all formatting on tree
           refreshTree = function () {
             data.instance.refresh();
@@ -893,7 +948,6 @@ asyncCallLibrary().then(function () {
         //$("#testTree").jstree().refresh();
         console.log("The selected (library) nodes are:");
         console.log(data.selected);
-        //debugger;
         //console.log($("#testTree").jstree(data).delete_node(data));
       });
     });

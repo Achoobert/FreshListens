@@ -61,6 +61,7 @@ class Api(object):
             return (str(e))
     def getHistory(self, userID):
         """based on the input text, return the int result"""
+        #return [1]
         try:
             return app.getHistory(userID)
         except Exception as e:
@@ -80,15 +81,9 @@ class Api(object):
             if hasattr(e, 'message'):
                 return("api works but cannot get library " + (getattr(e, 'message', str(e))))
             else:
-                return(e)
-    def get_drive_info(self):
-        """Return list of drives"""
-        try:
-            return app.get_drive_info()
-        except Exception as e:
-            return (str(e))  
+                return(e)  
     def getPathList(self):
-        """Return list of drives"""
+        """Return list of sources"""
         try:
             return app.getPathList()
         except Exception as e:
@@ -100,12 +95,19 @@ class Api(object):
             return app.sendFiles(dataArr)
         except Exception as e:
             return (str(e))
-    def libraryDatabaseInit(self):
-        """Return list of drives"""
+    def libraryDatabaseRecheck(self):
+        """library Database Rechecker"""
         try:
-            return app.libraryDatabaseInit()
+            return app.libraryDatabaseRecheck()
         except Exception as e:
             return (e)
+    def libraryDatabaseNew(self, newPath):
+        """library Database new updater"""
+        try:
+            return app.libraryDatabaseNew(newPath)
+        except Exception as e:
+            return (e)
+
             
 def parse_port():
     return 4242

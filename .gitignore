@@ -27,3 +27,7 @@ freshlistens-linux-mips64el/
 freshlistens-linux-x64/
 
 freshlistens-win32-ia32/
+
+api.spec
+
+example.spec

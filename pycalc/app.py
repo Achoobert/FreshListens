@@ -52,10 +52,10 @@ def getPathList():
 def addLibraryPath(newLine):
     # add path to file, ALSO update database
     try:
-        c.execute("INSERT OR IGNORE INTO location VALUES (null,\"" + newLine + "\")")
+        c.execute("INSERT OR IGNORE INTO location VALUES (null,\"" + newLine[0] + "\")")
         conn.commit()
         # scan the new folder 
-        scanSuccess = libraryDatabaseInit()
+        scanSuccess = libraryDatabaseNew(newLine)
         return (scanSuccess)
     except Exception as e:
         if hasattr(e, 'message'):
@@ -71,7 +71,14 @@ def resetLibrary():
     c.execute("UPDATE directories SET checked = 0")
     conn.commit()
 
-def libraryDatabaseInit(): # get paths, send to scanner
+def libraryDatabaseNew(newPath): # get paths, send to scanner
+    # if null check
+    if (newPath.__len__() == 0):
+        return False
+    # check for files
+    return locationScan([newPath])
+
+def libraryDatabaseRecheck(): # get paths, send to scanner
     # TODO optimize
     # REMOVEDFORTESTING
     return True
@@ -83,7 +90,7 @@ def libraryDatabaseInit(): # get paths, send to scanner
         return False
     # Only check for missing files on app startup. 
     # if user deletes files with app open thats THEIR problem
-    # resetLibrary()
+    resetLibrary()
     return locationScan(pathList)
 
 def locationScan(pathList): # Scan the directories
@@ -127,7 +134,7 @@ def libraryFileInsert(file): # Update the Database
                 # track_id,name , location , type , size , parent_dir, checked 
             c.execute("INSERT OR IGNORE INTO library VALUES (null,'{0}','{1}','{2}',{3},'{4}',{5})".format(*file))
         conn.commit()
-        return True
+        return (True)
     except Exception as e:
         if hasattr(e, 'message'):
             return(getattr(e, 'message', str(e)))
@@ -137,12 +144,13 @@ def libraryFileInsert(file): # Update the Database
 def dirInsert(dir): # Update the Database
     try:
         c.execute(
-            # null     0        1            2      3
-            # dir_id, name, parent_dir, location, checked
-            "INSERT OR IGNORE INTO directories VALUES (null, '{0}','{1}','{2}', 1)".format(*dir))
-        # If record already exists, update database to reflect that it exists
-        c.execute(
             "UPDATE directories SET checked = 1 WHERE (name == '"+ str(dir[0])+"' AND location == '"+ str(dir[2]) +"')")
+        if c.rowcount < 1:
+            c.execute(
+                # null     0        1            2      3
+                # dir_id, name, parent_dir, location, checked
+                "INSERT OR IGNORE INTO directories VALUES (null, '{0}','{1}','{2}', 1)".format(*dir))
+            # If record already exists, update database to reflect that it exists
         conn.commit()
         return (True)
     except Exception as e:
@@ -168,10 +176,11 @@ def sendFiles(dataArr):
     currentUser = dataArr[1]
     selectedDrive  = dataArr[2] 
     processedFiles = []
+    #return(dataArr)
     for i, item in enumerate(toSend):
         # get proper path from database
         # trying to pass it back and forth causes issues
-        c.execute("Select location FROM library WHERE track_id=?",(item[0]))
+        c.execute("Select location FROM library WHERE track_id="+ str(item[0]))
         source = c.fetchone()[0]
         # Get source filename with filetype ex: ".mp3"
         filename = (os.path.basename(os.path.normpath(source)))
@@ -181,7 +190,7 @@ def sendFiles(dataArr):
         try:
             shutil.copyfile(Path(source), Path(destination), follow_symlinks=True)  
             # Save sent file to history table
-            logFileReceived(currentUser[0], item[0])
+            logFileReceived(currentUser, item[0])
             processedFiles.append([source, destination])
         except Exception as e:
             if hasattr(e, 'message'):
@@ -196,10 +205,15 @@ def logFileReceived(userID, fileID):
     today = date.today()
     # c.execute("INSERT INTO history VALUES ('2006-01-05', 1, 8)")
     # history_id, date , user_id , track_id ,
-    c.execute("INSERT OR IGNORE INTO history VALUES (null,'" +
-              today.strftime("%d/%m/%Y")+"', ?,   ?)", (userID, fileID))
-    conn.commit()
-    return True
+    try:
+        c.execute("INSERT OR IGNORE INTO history VALUES (null,'" + today.strftime("%/d/%m/%Y")+"', ?,   ?)", (userID, fileID))
+        conn.commit()
+        return True
+    except Exception as e:
+        if hasattr(e, 'message'):
+            return(getattr(e, 'message', str(e)))
+        else:
+            return(e)
 
 
 def addUser(userData):
@@ -216,16 +230,19 @@ def addUser(userData):
         else:
             return(e)
 def getHistory(userID):
-
-    historyArr = []
     # TODO
     # select library.fullPath history.track_id from history where user... LEFT JOIN library where track_id
     # Return ([1, "d:/a/b/c/track2"])
     # can use either todo a jquery dom lookup?
     # could iterate through nodes in python but I need to learn javascript gooder
-    for row in c.execute('SELECT * FROM history where user_id=? ORDER BY track_id', str(userID)):
-        #print([row[0], row[1], row[2]])
-        historyArr.append([row[0], row[1], row[2], row[3]])
+    historyArr = []
+    try:
+        for row in c.execute('SELECT track_id FROM history where user_id=? ORDER BY track_id', str(userID)):
+            #print(row[0])
+            historyArr.append(row[0])
+    except:
+        return("error", row)
+    return historyArr
     # TODO show user's track history
     arr = []
     for row in (historyArr): 
@@ -318,11 +335,6 @@ def getLibrary():
     return (jsonText)
     #arr = []
     # update files
-    #if (libraryDatabaseInit()):
-    #    for row in c.execute('SELECT * FROM library ORDER BY track_id'):
-            #print([row[0], row[1], 'location', row[3], row[4]])
-    #        arr.append([row[0], row[1], row[3], row[4]])
-        #c.execute('SELECT * FROM users ORDER BY user_id')
 # return arr
 # class anytree.node.node.Node(name, parent=None, children=None, **kwargs)
 #print(getLibrary())
