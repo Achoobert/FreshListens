@@ -4,8 +4,13 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 const path = require("path");
 let $ = require("jquery");
+//const zerorpc = require("zerorpc");
 
 //const jstree = "./dist/jstree";
+
+// after npm install
+// npm rebuild zeromq --runtime=electron --target=(electron version)7.2.5
+// ./node_modules/.bin/electron-rebuild
 
 //  to run this in test mode
 // './node_modules/.bin/electron .'
@@ -17,7 +22,7 @@ const createWindow = () => {
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
-      //nodeIntegration: true,
+      nodeIntegration: true,
       enableRemoteModule: true,
       //contextIsolation: false,
       //sandbox: false,
@@ -101,6 +106,7 @@ const createPyProc = () => {
 
   if (pyProc != null) {
     console.log(script);
+    console.log(process.versions);
     console.log("child process success on port " + port);
   }
 };

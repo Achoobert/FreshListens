@@ -1,0 +1,62 @@
+Arguments: 
+  C:\Program Files\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js install
+
+PATH: 
+  C:\Python34\Lib\site-packages\PyQt5;C:\Python37\Scripts\;C:\Python37\;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\ProgramData\chocolatey\bin;C:\Program Files\dotnet\;C:\Program Files\Microsoft SQL Server\130\Tools\Binn\;C:\Users\iZac\AppData\Roaming\nvm;C:\Program Files\nodejs;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files (x86)\Calibre2\;C:\Program Files\PuTTY\;C:\Users\iZac\AppData\Local\Programs\Python\Python37-32\Scripts\;C:\Users\iZac\AppData\Local\Programs\Python\Python37-32\;C:\Users\iZac\AppData\Local\Microsoft\Windo;C:\Program Files (x86)\Yarn\bin\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Git\bin\;C:\Program Files\Git\cmd\;;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Users\iZac\.windows-build-tools\python27\;C:\Users\iZac\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Nmap;C:\Users\iZac\AppData\Roaming\npm;C:\Users\iZac\AppData\Local\Programs\Microsoft VS Code\bin;C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin;C:\tools\msys64;C:\dev\msys64\mingw64\bin;C:\dev\msys64\mingw32\bin;C:\Program Files (x86)\GnuPG\bin;C:\Users\iZac\AppData\Local\GitHubDesktop\bin;C:\dev\ADB;C:\Users\iZac\AppData\Local\Android\sdk\platform-tools;C:\Program Files\OpenSSL-Win64;C:\Users\iZac\AppData\Local\Yarn\bin;C:\Users\iZac\AppData\Local\Microsoft\WindowsApps
+
+Yarn version: 
+  1.21.1
+
+Node version: 
+  12.8.1
+
+Platform: 
+  win32 x64
+
+Trace: 
+  Error: EISDIR: illegal operation on a directory, read
+
+npm manifest: 
+  {
+    "name": "freshlistens",
+    "version": "1.0.0",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "start": "electron ."
+    },
+    "dependencies": {
+      "bootstrap": "^4.5.0",
+      "electron-rebuild": "^1.11.0",
+      "jquery": "^3.5.1",
+      "jquery-ui": "^1.12.1",
+      "jquery-ui-dist": "^1.12.1",
+      "jstree": "^3.3.10",
+      "node-sass": "^4.14.1",
+      "popper.js": "^1.14.4",
+      "zeromq": "^6.0.0-beta.6",
+      "zerorpc": "git+https://github.com/0rpc/zerorpc-node.git"
+    },
+    "devDependencies": {
+      "electron": "^7.2.4",
+      "electron-packager": "^12.1.0"
+    },
+    "description": "Allow a single PC to admin files for different listeners",
+    "main": "app.js",
+    "repository": {
+      "type": "git",
+      "url": "freshlistens"
+    },
+    "keywords": [
+      "DigiServe",
+      "Audio",
+      "Library"
+    ],
+    "author": "Isaac Schubert",
+    "license": "OSL"
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
