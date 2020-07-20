@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "electron": "^1.8.8",
-    "electron-packager": "^12.1.0"
+    "electron-packager": "^12.2.0"
   },
   "description": "Allow a single PC to admin files for different listeners",
   "main": "app.js",
@@ -31,5 +31,41 @@
     "Library"
   ],
   "author": "Isaac Schubert",
-  "license": "OSL"
+  "license": "OSL",
+  "config": {
+    "forge": {
+      "make_targets": {
+        "win32": [
+          "squirrel"
+        ],
+        "darwin": [
+          "zip",
+          "dmg"
+        ],
+        "linux": [
+          "deb",
+          "rpm"
+        ]
+      },
+      "electronPackagerConfig": {
+        "packageManager": "npm",
+        "prune": true,
+        "icon": "src/icons/icon",
+        "ignore": [
+          "/src/pycalc$",
+          "\\.git(ignore|config)",
+          "\\.vscode",
+          "\\.idea",
+          "/package-lock\\.json",
+          "Pipfile($|\\.lock)",
+          "/(api_pythermal|api|prtail)\\.spec",
+          "/bin$",
+          "/build$",
+          "/out2$",
+          "/Output$",
+          "/README\\.md"
+        ]
+      }
+    }
+  }
 }

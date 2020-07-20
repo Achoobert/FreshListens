@@ -243,12 +243,12 @@ getDrives.addEventListener("click", () => {
   displayNone();
   viewDrives.style.display = "block";
   viewDriveTable.style.display = "block";
-  clearEle(viewDriveTable);
   client.invoke("getDrives", (error, res) => {
     if (error) {
       console.error(error);
       viewDriveTable.textContent = "drive search busted";
     } else {
+      clearEle(viewDriveTable);
       viewDriveTable.appendChild(createDriveTable(res));
     }
   });
@@ -378,7 +378,6 @@ function getPathList() {
  * @update DOM: 'users'
  */
 function displayPathList() {
-  clearEle(libraryLocationTable);
   displayNone();
   libraryLocation.style.display = "block";
   async function asyncCall() {
@@ -388,6 +387,7 @@ function displayPathList() {
     if (result === false) {
       return;
     }
+    clearEle(libraryLocationTable);
     libraryLocationTable.appendChild(createPathTable(result));
     //users.appendChild(result);
     return result;
@@ -456,9 +456,9 @@ function getHistory(userId) {
  * @update DOM: 'users'
  */
 function displayUserList() {
-  clearEle(users);
   async function asyncCallUsers() {
     const result = await getUsers();
+    clearEle(users);
     users.appendChild(result);
     return result;
   }
@@ -782,6 +782,7 @@ function addLibraryPath(path) {
 }
 
 function clearEle(elementID) {
+  console.log("Clearing");
   elementID.innerHTML = "";
 }
 
@@ -902,10 +903,10 @@ asyncCallLibrary().then(function () {
             // find node where
             //$("#myTable tbody").append(makeFileRow(data));
             //$("#testTree li").css("color", "red");
-            $("#jsFileTreeLibrary li")
-              .find("#" + element) //+ toString(1)
-              .css("color", "red");
             /*
+            $("#jsFileTreeLibrary li")
+              .find("#" + id) //+ toString(1)
+              .css("color", "red");
             id="jsFileTreeLibrary"
             role="tree"
             class="jstree jstree-2 jstree-default"

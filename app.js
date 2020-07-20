@@ -101,6 +101,7 @@ const createPyProc = () => {
 
   if (pyProc != null) {
     console.log(script);
+    console.log(process.versions);
     console.log("child process success on port " + port);
   }
 };

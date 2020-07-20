@@ -31,3 +31,7 @@ freshlistens-win32-ia32/
 api.spec
 
 example.spec
+
+yarn-error.log
+
+yarn.lock
