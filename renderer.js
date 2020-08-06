@@ -11,9 +11,9 @@ rm -rf ~/.node-gyp ~/.electron-gyp
 npm install
 */
 
-const zerorpc = require("zerorpc");
-let client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
-client.connect("tcp://127.0.0.1:4242");
+//const zerorpc = require("zerorpc");
+//let client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
+//client.connect("tcp://127.0.0.1:4242");
 /////const jstree = require("./node_modules/jstree/dist/jstree.min.js");
 //let jstree = new jstree.Client();
 
@@ -157,11 +157,19 @@ function updateSelected() {
 ///// debugging stuff, delete later
 let echoButton = document.querySelector("#echoButton");
 
+const { remote } = require("electron");
+const mainProcess = remote.require("./app.js");
+const logicProcess = remote.require("./appLogic.js");
+
 echoButton.addEventListener("click", () => {
+  // renderer process, for example app/renderer.js
+
+  mainProcess.onClick();
+  logicProcess.testCaller("renderer here, ");
   //console.log("click");
   // console.log($("#testTree").jstree(true).get_node("Child node 23"));
   //$("#testTree").jstree(false).select_node("Child node 1");
-  client.invoke("echo", "api.py -> app.py working", (error, res) => {
+  /*client.invoke("echo", "api.py -> app.py working", (error, res) => {
     echoButton.style.display = "block";
     if (error) {
       console.error(error);
@@ -169,7 +177,7 @@ echoButton.addEventListener("click", () => {
       echoButton.style.display = "none";
       //console.log(res);
     }
-  });
+  });*/
 });
 echoButton.dispatchEvent(new Event("click"));
 ///// end debug

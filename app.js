@@ -7,6 +7,11 @@ let $ = require("jquery");
 
 //const jstree = "./dist/jstree";
 
+//needed to use electron-rebuild via
+// npm install --save-dev electron-rebuild and
+// npx electron-rebuild
+// before I could get npx electron . to work.
+
 //  to run this in test mode
 // './node_modules/.bin/electron .'
 
@@ -60,6 +65,10 @@ const selectPort = () => {
   pyPort = 4242;
   return pyPort;
 };
+
+//
+
+const appLogic = require("./appLogic.js");
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
