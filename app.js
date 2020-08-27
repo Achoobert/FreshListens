@@ -22,9 +22,9 @@ const createWindow = () => {
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
-      //nodeIntegration: true,
+      nodeIntegration: true,
       enableRemoteModule: true,
-      //contextIsolation: false,
+      contextIsolation: false,
       //sandbox: false,
     },
   });
@@ -58,68 +58,7 @@ app.on("activate", () => {
 });
 // add these to the end or middle of main.js
 
-let pyProc = null;
-let pyPort = null;
-
-const selectPort = () => {
-  pyPort = 4242;
-  return pyPort;
-};
-
-//
-
-const appLogic = require("./appLogic.js");
-
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
-const PY_DIST_FOLDER = "pycalcdist";
-const PY_FOLDER = "pycalc";
-const PY_MODULE = "api"; // without .py suffix
-
-const guessPackaged = () => {
-  const fullPath = path.join(__dirname, PY_DIST_FOLDER);
-  //console.log(fullPath);
-  return require("fs").existsSync(fullPath);
-};
-
-const getScriptPath = () => {
-  if (!guessPackaged()) {
-    console.log(path.join(__dirname, PY_DIST_FOLDER, PY_MODULE, PY_MODULE));
-    return path.join(__dirname, PY_FOLDER, PY_MODULE + ".py");
-  }
-  if (process.platform === "win32") {
-    console.log(path.join(__dirname, PY_DIST_FOLDER, PY_MODULE, PY_MODULE));
-    return path.join(__dirname, PY_DIST_FOLDER, PY_MODULE, PY_MODULE + ".exe");
-  }
-  console.log(path.join(__dirname, PY_DIST_FOLDER, PY_MODULE, PY_MODULE));
-  return path.join(__dirname, PY_DIST_FOLDER, PY_MODULE, PY_MODULE);
-};
-
-// main.js
-// the improved version
-const createPyProc = () => {
-  let script = getScriptPath();
-  let port = "" + selectPort();
-
-  if (guessPackaged()) {
-    pyProc = require("child_process").execFile(script, [port]);
-  } else {
-    pyProc = require("child_process").spawn("python", [script, port]);
-  }
-
-  if (pyProc != null) {
-    console.log(script);
-    console.log(process.versions);
-    console.log("child process success on port " + port);
-  }
-};
-
-const exitPyProc = () => {
-  pyProc.kill();
-  pyProc = null;
-  pyPort = null;
-};
-
-app.on("ready", createPyProc);
-app.on("will-quit", exitPyProc);
+const appLogic = require("./appLogic.js");
