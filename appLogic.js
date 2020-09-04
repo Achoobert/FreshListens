@@ -1,18 +1,60 @@
+var sqlite3 = require("sqlite3").verbose();
+var db = new sqlite3.Database("test.db");
+
+db.serialize(function () {
+  db.run("CREATE TABLE IF NOT EXISTS lorem (info TEXT)");
+
+  var stmt = db.prepare("INSERT INTO lorem VALUES (?)");
+  for (var i = 0; i < 10; i++) {
+    stmt.run("Ipsum " + i);
+  }
+  stmt.finalize();
+
+  db.each("SELECT rowid AS id, info FROM lorem", function (err, row) {
+    console.log(row.id + ": " + row.info);
+  });
+});
+//db.close();
+
+// Create tables IF NOT EXISTS
+// users library history location directories
+db.run(
+  "CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, name text, location text )"
+);
+db.run(
+  "CREATE TABLE IF NOT EXISTS library (track_id INTEGER PRIMARY KEY,name text, location text, type text, size real, parent_dir text, checked INTEGER DEFAULT 0,  UNIQUE(name, location))"
+);
+db.run(
+  "CREATE TABLE IF NOT EXISTS history(history_id  INTEGER PRIMARY KEY, date text, user_id INTERGER, track_id INTERGER, FOREIGN KEY (user_id) REFERENCES users (user_id), FOREIGN KEY (track_id) REFERENCES library (track_id))"
+);
+db.run(
+  "CREATE TABLE IF NOT EXISTS location(loc_id INTEGER PRIMARY KEY, location text )"
+);
+db.run(
+  "CREATE TABLE IF NOT EXISTS directories (dir_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, parent_dir TEXT, location TEXT, checked INTEGER DEFAULT 0, UNIQUE(name, location))"
+);
+db.run(
+  "CREATE TABLE IF NOT EXISTS tree (tree_id INTEGER PRIMARY KEY AUTOINCREMENT, jsonText TEXT)"
+);
+
 function internalF(inputVar) {
   return [inputVar, "yo"];
 }
 
-const userLogic = require("./classes/userLogic.js");
-const libraryLogic = require("./classes/libraryLogic.js");
+const userLogic = require("./source/classes/userLogic.js");
+const libraryLogic = require("./source/classes/libraryLogic.js");
 
 module.exports = class Client {
   constructor() {
+    this.db = db;
     // big question,
     // is it possible to import sqllite in two files?
-    const user = new userLogic();
+    // pass access to the DB to the user object
+    const user = new userLogic(db);
     this.user = user;
+    user.test();
     //
-    const library = new libraryLogic();
+    const library = new libraryLogic(db);
     this.library = library;
     this.jsonTree = library.jsonTree;
   }
