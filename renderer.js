@@ -5,13 +5,18 @@ const { remote } = require("electron");
 // console.log(`The area of mySquare is ${mySquare.area()}`);
 const appLogic = remote.require("./appLogic.js");
 const client = new appLogic(2);
-console.log(`an app variable is ${client.history()}`);
+//console.log(`an app variable is ${client.history()}`);
 // this setup ONLY allows access to module exports class
 
 // ~~~~~~~is remote working~~~~~~~~~~~
-console.log(client.hi());
+//console.log(client.hi());
 console.log(client.echo("Bounce me back"));
-console.log(client.testCaller("renderer here, "));
+console.log(client.getData());
+//console.log(client.testCaller("renderer here, "));
+
+let caller = client.library.getPathList();
+
+console.log(caller);
 // ~~~~~~~~end is remote working~~~~~~~~~~~~
 
 // send data, get no confirmation back

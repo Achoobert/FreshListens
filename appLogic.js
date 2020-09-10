@@ -1,42 +1,59 @@
-var sqlite3 = require("sqlite3").verbose();
-var db = new sqlite3.Database("test.db");
-
-db.serialize(function () {
-  db.run("CREATE TABLE IF NOT EXISTS lorem (info TEXT)");
-
-  var stmt = db.prepare("INSERT INTO lorem VALUES (?)");
-  for (var i = 0; i < 10; i++) {
-    stmt.run("Ipsum " + i);
-  }
-  stmt.finalize();
-
-  db.each("SELECT rowid AS id, info FROM lorem", function (err, row) {
-    console.log(row.id + ": " + row.info);
-  });
-});
-//db.close();
-
 // Create tables IF NOT EXISTS
 // users library history location directories
-db.run(
-  "CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, name text, location text )"
-);
-db.run(
-  "CREATE TABLE IF NOT EXISTS library (track_id INTEGER PRIMARY KEY,name text, location text, type text, size real, parent_dir text, checked INTEGER DEFAULT 0,  UNIQUE(name, location))"
-);
+
+var dictstring = JSON.stringify(dict);
+var fs = require("fs");
+fs.writeFile("thing.json", dictstring);
+var dict = {
+  one: [15, 4.5],
+  two: [34, 3.3],
+  three: [67, 5.0],
+  four: [32, 4.1],
+};
+
+let map = new Map();
+map.set('key', {'value1', 'value2'});
+let values = map.get('key');  
+
+var dictLibStr = JSON.stringify(dictLibrary);
+var fs = require("fs");
+fs.writeFile("thing.json", dictLibStr);
+var dictLibrary = {
+  one: [15, 4.5],
+  two: [34, 3.3],
+  three: [67, 5.0],
+  four: [32, 4.1],
+};
+
+class BaseClass {
+  constructor(id, name, location) {
+    this.id = id;
+    this.name = name;
+    this.location = location;
+  }
+}
+
+class User extends BaseClass {}
+class Library extends BaseClass {
+  constructor(type, size, parent_dir, checked) {
+    this.type = type;
+    this.size = size;
+    this.parent_dir = parent_dir;
+    this.checked = checked;
+    //UNIQUE(name, location);
+  }
+}
+/*
 db.run(
   "CREATE TABLE IF NOT EXISTS history(history_id  INTEGER PRIMARY KEY, date text, user_id INTERGER, track_id INTERGER, FOREIGN KEY (user_id) REFERENCES users (user_id), FOREIGN KEY (track_id) REFERENCES library (track_id))"
 );
 db.run(
-  "CREATE TABLE IF NOT EXISTS location(loc_id INTEGER PRIMARY KEY, location text )"
+  "CREATE TABLE IF NOT EXISTS location(loc_id INTEGER PRIMARY KEY, location text, path text )"
 );
 db.run(
   "CREATE TABLE IF NOT EXISTS directories (dir_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, parent_dir TEXT, location TEXT, checked INTEGER DEFAULT 0, UNIQUE(name, location))"
 );
-db.run(
-  "CREATE TABLE IF NOT EXISTS tree (tree_id INTEGER PRIMARY KEY AUTOINCREMENT, jsonText TEXT)"
-);
-
+*/
 function internalF(inputVar) {
   return [inputVar, "yo"];
 }
@@ -46,15 +63,11 @@ const libraryLogic = require("./source/classes/libraryLogic.js");
 
 module.exports = class Client {
   constructor() {
-    this.db = db;
-    // big question,
-    // is it possible to import sqllite in two files?
-    // pass access to the DB to the user object
-    const user = new userLogic(db);
-    this.user = user;
-    user.test();
+    //const user = new userLogic();
+    //this.user = user;
+    //user.test();
     //
-    const library = new libraryLogic(db);
+    const library = new libraryLogic();
     this.library = library;
     this.jsonTree = library.jsonTree;
   }
@@ -73,6 +86,24 @@ module.exports = class Client {
   // get data based on existing cursor
   history() {
     return [[this.userID], 2, 3, 4, 5];
+  }
+
+  // access the sql data from renderer
+  getter() {
+    var db = this.db;
+    async function wrapperFunc() {
+      try {
+        let a = db.run("SELECT	1 + 1;");
+        return a;
+      } catch (e) {
+        console.log(e);
+        throw e; // let caller know the promise was rejected with this reason
+      }
+    }
+    return wrapperFunc();
+  }
+  getData() {
+    return this.getter();
   }
 
   // do something with data send in
