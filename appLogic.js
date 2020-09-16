@@ -1,23 +1,23 @@
 // Create tables IF NOT EXISTS
 // users library history location directories
 
-var dictstring = JSON.stringify(dict);
-var fs = require("fs");
-fs.writeFile("thing.json", dictstring);
 var dict = {
   one: [15, 4.5],
   two: [34, 3.3],
   three: [67, 5.0],
   four: [32, 4.1],
 };
+var dictstring = JSON.stringify(dict);
+var fs = require("fs");
+//fs.writeFile("thing.json", dictstring);
 
 let map = new Map();
-map.set('key', {'value1', 'value2'});
-let values = map.get('key');  
+map.set("key", { value1: "value2" });
+let values = map.get("key");
 
 var dictLibStr = JSON.stringify(dictLibrary);
 var fs = require("fs");
-fs.writeFile("thing.json", dictLibStr);
+//fs.writeFile("thing.json", dictLibStr);
 var dictLibrary = {
   one: [15, 4.5],
   two: [34, 3.3],
@@ -86,24 +86,6 @@ module.exports = class Client {
   // get data based on existing cursor
   history() {
     return [[this.userID], 2, 3, 4, 5];
-  }
-
-  // access the sql data from renderer
-  getter() {
-    var db = this.db;
-    async function wrapperFunc() {
-      try {
-        let a = db.run("SELECT	1 + 1;");
-        return a;
-      } catch (e) {
-        console.log(e);
-        throw e; // let caller know the promise was rejected with this reason
-      }
-    }
-    return wrapperFunc();
-  }
-  getData() {
-    return this.getter();
   }
 
   // do something with data send in

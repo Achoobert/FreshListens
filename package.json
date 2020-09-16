@@ -6,18 +6,22 @@
     "start": "electron ."
   },
   "dependencies": {
-    "bootstrap": "^4.5.0",
+    "bootstrap": "^4.5.2",
+    "directory-tree": "^2.2.4",
+    "glob": "^7.1.6",
     "jquery": "^3.5.1",
     "jquery-ui": "^1.12.1",
     "jquery-ui-dist": "^1.12.1",
     "jstree": "^3.3.9",
+    "node-dir": "^0.1.17",
     "popper.js": "^1.14.4",
-    "sqlite3": "^5.0.0"
+    "react-dev-utils": "^10.2.1",
+    "react-scripts": "^3.4.3"
   },
   "devDependencies": {
-    "electron": "^7.2.4",
-    "electron-rebuild": "^1.11.0",
-    "electron-packager": "^12.1.0"
+    "electron": "^7.3.3",
+    "electron-packager": "^12.1.0",
+    "electron-rebuild": "^1.11.0"
   },
   "description": "Allow a single PC to admin files for different listeners",
   "main": "app.js",

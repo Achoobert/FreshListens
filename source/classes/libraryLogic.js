@@ -1,4 +1,7 @@
-var dir = require("node-dir");
+const dirTree = require("directory-tree");
+
+var glob = require("glob");
+const path = require("path");
 jsonTree = {};
 //"./dist/jstree.min.js"
 
@@ -14,63 +17,113 @@ class libNode {
     children = false
   ) {
     //super(libNode, self).__init__()
-    self.text = text; // what the User sees
-    self.name = fullPath; // "d:/root/child" unique 'id'
+    this.text = text; // what the User sees
+    this.name = fullPath; // "d:/root/child" unique 'id'
     if (track_data) {
       // If it is a file
       // [id, name, type, size]
-      self.track_data = track_data;
-      self.id = track_data[0];
+      this.track_data = track_data;
+      this.id = track_data[0];
       //self.size = track_data[2]
-      self.icon = "glyphicon glyphicon-cd";
+      this.icon = "glyphicon glyphicon-cd";
     }
     if (topDir) {
-      self.state = { opened: "true" };
+      this.state = { opened: "true" };
     }
-    self.parent = parent; // parent full path
+    this.parent = parent; // parent full path
     if (children) {
-      self.children = children; // possible both Dir and Track
+      this.children = children; // possible both Dir and Track
     }
   }
 }
 
 module.exports = class Library {
-  constructor(appDB) {
-    this.db = appDB;
-    this.db.run("CREATE TABLE IF NOT EXISTS librarylogicworks (info TEXT)");
-    // set sql things here
-
+  constructor() {
     // first time init?
-    if (getPathList() === false) {
-      this.jsonTree = {};
-    } else {
-      // get existing json tree ???
-      // TODO this may be incorrect
-      this.jsonTree = this.db.run(`SELECT jsonText FROM tree`);
-    }
-    console.log(this.jsonTree);
+    //this.pathList = getPathList();
+    var pathList = [];
+    this.jsonTree = this.locationScan([
+      `D:\\schubert.dev\\Library_Manager\\Audioก\\MUSIC`,
+      `D:\\schubert.dev\\Library_Manager\\Audioก\\sermons`,
+    ]);
   }
-  getLibrary() {
-    return this.jsonTree;
+  libhi() {
+    console.log("direct call from renderer to library here");
+    //return getPathList();
+    return this.db.run("SELECT	1 + 1;");
+  }
+  async getLibrary() {
+    return new Promise((resolve) => {
+      resolve(
+        this.locationScan([
+          `D:\\schubert.dev\\Library_Manager\\Audioก\\MUSIC`,
+          `D:\\schubert.dev\\Library_Manager\\Audioก\\sermons`,
+        ])
+      );
+    });
+  }
+  getTree() {
+    console.log("why this not print");
+    console.log(this.jsonTree);
+    // console.log(this.locationScan([`D:\\test`]));
+    let a = this.jsonTree;
+    return a;
   }
 
   // Get stored Locations from database.
   // return array of paths
-  getPathList() {
-    pathList = [];
-    db.each("SELECT * FROM location", function (err, row) {
-      pathList.append(row.location);
+  async getPathList() {
+    //return "this is pathlist";
+    // returns a promise
+    //var db = this.db;
+    async function wrapperFunc() {
+      try {
+        let arr = [];
+        //db.each("SELECT * FROM location", function (err, row) {
+        //  console.log("this is a select");
+        //  arr.push(row);
+        //  console.log(row.loc_id + ": " + row.path + ": " + row.location);
+        //});
+        // now process r2
+        return arr; // this will be the resolved value of the returned promise
+      } catch (e) {
+        console.log(e);
+        throw e; // let caller know the promise was rejected with this reason
+      }
+    }
+    wrapperFunc()
+      .then((result) => {
+        // got final result
+        return result;
+      })
+      .catch((err) => {
+        // got error
+        console.error(err);
+      });
+    // these db calls are too slow...
+    this.db.each("SELECT rowid AS id, info FROM lorem", function (err, row) {
+      console.log(row.id + ": " + row.info);
     });
-    return pathList;
+    //return ;
+    this.db.each("SELECT * FROM location", function (err, row) {
+      console.log(row);
+      //return row;
+    });
+
+    let pathList = [];
+    this.db.each("SELECT * FROM location", function (err, row) {
+      pathList.push(row);
+    });
+    //return pathList;
   }
 
   // add to Location list
   // force new scan of ONLY new location
   addLibraryPath(newLine) {
     // add path to file, ALSO update database
-    this.db.run(
-      `INSERT OR IGNORE INTO location VALUES (null, '${newLine[0]}' )`
-    );
+    //this.db.run(
+    //  `INSERT OR IGNORE INTO location VALUES (null, '${newLine[0]}' )`
+    //);
     //conn.commit() // ??
     // scan the new folder
     scanSuccess = libraryDatabaseNew(newLine);
@@ -80,8 +133,8 @@ module.exports = class Library {
   // mark all files 'unchecked'
   resetLibrary() {
     // TODO Optimize this
-    this.db.run("UPDATE library SET checked = 0");
-    this.db.run("UPDATE directories SET checked = 0");
+    //this.db.run("UPDATE library SET checked = 0");
+    //this.db.run("UPDATE directories SET checked = 0");
     // conn.commit() //??
   }
 
@@ -114,42 +167,28 @@ module.exports = class Library {
 
   locationScan(pathList) {
     // Scan the directories
-    files = [];
-    // r=root, d=directories, f = files
-    // make an array of ID's not found, remove them
-    for (library_path in pathList) {
-      // library_path
-      dir.files(library_path, function (err, files) {
-        if (err) throw err;
-        console.log(files);
-        // we have an array of files now, so now we'll iterate that array
-        files.forEach(function (filepath) {
-          // track_id,name , location , type , size , parent_dir, checked
-          libraryFileInsert([
-            path.basename(filepath), // Name('song.mp3')
-            filepath, // location ('d:/myLibrary/audio/song.mp3')
-            "audio", // Type
-            fs.stat(filepath).size, // Parent Dir ('d:/myLibrary/audio')
-            path.dirname(filepath), // parent root ('d:/myLibrary')
-            1, // isChecked
-          ]);
-        });
-      });
-      dir.subdirs(library_path, function (err, subdirs) {
-        if (err) throw err;
-        console.log(subdirs);
-        //we have an array of subdirs now, so now we'll iterate that array
-        subdirs.forEach(function (subDirPath) {
-          // name, parent_dir, location
-          dirInsert([
-            path.basename(subDirPath), // name ('songs')
-            path.dirname(subDirPath), // parent_dir ('d:/myLibrary/audio')
-            library_path, // rootLoc d:/myLibrary/audio/songs
-          ]);
-        });
-      });
-    }
-    return True;
+    var fileList = {};
+    fileList["root"] = {
+      name: "root",
+      //text: "root",
+      id: "root",
+      icon: "glyphicon glyphicon-cd",
+      state: { opened: "true" },
+      path: "//",
+      children: [],
+    };
+
+    var getBranch = function (library_path) {
+      let a = dirTree(library_path);
+      a.state = { opened: "true" };
+      return a;
+    };
+
+    pathList.forEach((library_path) =>
+      fileList["root"].children.push(getBranch(library_path))
+    );
+
+    return fileList["root"];
   }
 
   libraryFileInsert(file) {
@@ -176,9 +215,21 @@ module.exports = class Library {
   ////// JSON Tree Stuff /////
   treeBuilder() {
     // Tree Builder Function
+    let libTreeDict = {};
+    libTreeDict["myRoot"] = libNode(
+      "my Library Folders",
+      (fullPath = "/"),
+      (topDir = 1)
+    );
+    return libTreeDict;
 
     // Create a dictionaryObject to procedurally store node objects in
-    libTreeDict = {};
+    //let libTreeDict = new Map();
+
+    libTreeDict.set(
+      "myRoot",
+      libNode("my Library Folders", (fullPath = "/"), (topDir = 1))
+    );
 
     libTreeDict["myRoot"] = libNode(
       "my Library Folders",

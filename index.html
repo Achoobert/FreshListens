@@ -16,6 +16,7 @@
       require("bootstrap");
       require("jquery-ui-dist/jquery-ui");
       require("popper.js");
+      require("./dist/bootstrap-3.3.7-dist/js/bootstrap.js");
       require("./node_modules/jstree/dist/jstree.min.js");
     </script>
 
@@ -98,7 +99,7 @@
     -->
     <button
       id="sendFiles"
-      style="display: block; margin-left: auto; margin-right: auto;"
+      style="display: block; margin-left: auto; margin-right: auto"
     >
       send Files
     </button>
@@ -110,9 +111,7 @@
     <div id="libraryLocation">
       <div class="container">
         <h3>Current Sources</h3>
-        <button id="scanLibrary" style="">
-          Check for new Files
-        </button>
+        <button id="scanLibrary" style="">Check for new Files</button>
         <div id="libraryLocationTable"></div>
       </div>
       <div class="container">
