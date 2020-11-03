@@ -1,6 +1,4 @@
 const dirTree = require("directory-tree");
-
-var glob = require("glob");
 const path = require("path");
 jsonTree = {};
 //"./dist/jstree.min.js"
@@ -38,19 +36,42 @@ class libNode {
 }
 
 module.exports = class Library {
-  constructor() {
-    // first time init?
+  constructor(storage) {
+    // Check if first time init
+    // booleans
+    this.storage = storage;
+    this.libSet = storage.has("location", function (error, hasKey) {
+      if (error) throw error;
+
+      if (hasKey) {
+        console.log("There is data stored as `location`");
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    // Get libraryTree
+    this.jsonTree = storage.get("library", function (error, data) {
+      if (error) throw error;
+
+      console.log(data);
+      return data;
+    });
+
     //this.pathList = getPathList();
-    var pathList = [];
-    this.jsonTree = this.locationScan([
-      `D:\\schubert.dev\\Library_Manager\\Audioก\\MUSIC`,
-      `D:\\schubert.dev\\Library_Manager\\Audioก\\sermons`,
-    ]);
+    this.pathList = storage.get("location", function (error, data) {
+      if (error) throw error;
+      console.log(data);
+      return data;
+    });
+    this.addLibraryPath(`D:\\schubert.dev\\Library_Manager\\Audioก\\MUSIC`);
+    this.addLibraryPath(`D:\\schubert.dev\\Library_Manager\\Audioก\\sermons`);
   }
   libhi() {
     console.log("direct call from renderer to library here");
     //return getPathList();
-    return this.db.run("SELECT	1 + 1;");
+    return "SELECT	1 + 1;";
   }
   async getLibrary() {
     return new Promise((resolve) => {
@@ -120,13 +141,19 @@ module.exports = class Library {
   // add to Location list
   // force new scan of ONLY new location
   addLibraryPath(newLine) {
-    // add path to file, ALSO update database
-    //this.db.run(
-    //  `INSERT OR IGNORE INTO location VALUES (null, '${newLine[0]}' )`
-    //);
-    //conn.commit() // ??
+    if (newLine === undefined || newLine.length === 0) {
+      return False;
+    }
     // scan the new folder
-    scanSuccess = libraryDatabaseNew(newLine);
+    // check for files
+    scanSuccess = this.locationScan([newLine]);
+
+    // add to local storage
+    this.storage.set("location", { newLine }, function (error) {
+      if (error) throw error;
+      console.log(`Adding ${newLine} to location list`);
+    });
+
     return scanSuccess;
   }
 
@@ -136,17 +163,6 @@ module.exports = class Library {
     //this.db.run("UPDATE library SET checked = 0");
     //this.db.run("UPDATE directories SET checked = 0");
     // conn.commit() //??
-  }
-
-  libraryDatabaseNew(newPath) {
-    // get paths, send to scanner
-    // if null or empty check
-    if (newPath === undefined || newPath.length === 0) {
-      return False;
-    }
-    // check for files
-    // TODO is this right syntax?
-    return locationScan([newPath]);
   }
 
   libraryDatabaseRecheck() {
@@ -165,112 +181,65 @@ module.exports = class Library {
     return locationScan(pathList);
   }
 
-  locationScan(pathList) {
-    // Scan the directories
-    var fileList = {};
-    fileList["root"] = {
-      name: "root",
-      //text: "root",
-      id: "root",
-      icon: "glyphicon glyphicon-cd",
-      state: { opened: "true" },
-      path: "//",
-      children: [],
-    };
+  jsonTreeInit() {
+    //check if exist
+    let libInit = this.storage.has("library", function (error, hasKey) {
+      if (error) throw error;
+      return hasKey;
+    });
+    // if does not exist, insert root node
+    if (!libInit) {
+      let fileList = new Map();
+      fileList["root"] = {
+        name: "root",
+        //text: "root",
+        id: "root",
+        icon: "glyphicon glyphicon-cd",
+        state: { opened: "true" },
+        path: "//",
+        children: [],
+      };
+      this.storage.set("library", { fileList }, function (error) {
+        if (error) throw error;
+        console.log(`Adding ${fileList} to library`);
+      });
+    }
 
+    // return the whole library
+    return this.storage.get("library", function (error, data) {
+      if (error) throw error;
+      console.log(data.fileList);
+      return data.fileList;
+    });
+  }
+
+  // Makes a new 'branch' of the library for each location.
+  locationScan(pathList) {
+    // get stored root + any stored json
+    // TODO need to wait on this to complete before continuing
+    var fileList = this.jsonTreeInit();
+
+    // Scan a directory
     var getBranch = function (library_path) {
       let a = dirTree(library_path);
       a.state = { opened: "true" };
       return a;
     };
-
+    // input: array of paths,
+    // output: save each branch to fileList json
+    console.log(fileList.root);
     pathList.forEach((library_path) =>
-      fileList["root"].children.push(getBranch(library_path))
+      fileList.root.children.push(getBranch(library_path))
     );
 
-    return fileList["root"];
-  }
-
-  libraryFileInsert(file) {
-    // Update the Database
-    // TODO this statement may fail
-    this.db.run(
-      `INSERT INTO library(name , location , type , size , parent_dir, checked) 
-      VALUES ('${file[0]}','${file[1]}','${file[2]}',${file[3]},'${file[4]}',${file[5]})
-      ON CONFLICT(name , location) DO UPDATE SET checked=1`
-    );
-    return True;
-  }
-
-  dirInsert(dir) {
-    // Update the Database
-    this.db.run(
-      `INSERT INTO directories(name, parent_dir, location, checked) 
-      VALUES ('${dir[0]}','${dir[1]}','${dir[2]}',1)
-      ON CONFLICT(name , parent_dir) DO UPDATE SET checked=1`
-    );
-    return True;
-  }
-
-  ////// JSON Tree Stuff /////
-  treeBuilder() {
-    // Tree Builder Function
-    let libTreeDict = {};
-    libTreeDict["myRoot"] = libNode(
-      "my Library Folders",
-      (fullPath = "/"),
-      (topDir = 1)
-    );
-    return libTreeDict;
-
-    // Create a dictionaryObject to procedurally store node objects in
-    //let libTreeDict = new Map();
-
-    libTreeDict.set(
-      "myRoot",
-      libNode("my Library Folders", (fullPath = "/"), (topDir = 1))
-    );
-
-    libTreeDict["myRoot"] = libNode(
-      "my Library Folders",
-      (fullPath = "/"),
-      (topDir = 1)
-    );
-    // Build first layer, user selected library locations
-    db.each(`SELECT location FROM location`, function (err, row) {
-      // and in the loop use the name as key when you add your instance:
-      libTreeDict[row[0]] = libNode(
-        path.basename(Path(row[0])),
-        (fullPath = row[0]),
-        (parent = libTreeDict["myRoot"]),
-        (topDir = 1)
-      ); // root is parent '/' and locationDir ID is '/path'
+    // Push the newly updated tree to long-term storage
+    this.storage.set("library", { fileList }, function (error) {
+      if (error) throw error;
+      console.log(`Adding ${fileList} to lib`);
     });
-    db.each(
-      `SELECT name, location, parent_dir, checked FROM directories WHERE checked == 1`,
-      function (err, row) {
-        // TODO dictionary insert name variable, is it too long?
-        libTreeDict[row[1]] = libNode(
-          row[0],
-          (fullPath = row[1]),
-          (parent = libTreeDict[row[2]])
-        ); // parent is stored in dir database as '/path'
-      }
-    );
-    // End points, files. Directories or locations are possible parents
-    db.each(
-      `SELECT name, location, parent_dir, track_id, type, size, checked FROM library WHERE checked == 1`,
-      function (err, row) {
-        libTreeDict[row[1]] = libNode(
-          row[0],
-          row[1],
-          (parent = libTreeDict[row[2]]),
-          (track_data = [row[3], row[0], row[4], row[5]])
-        ); // parent is stored in dir database as '/path'
-      }
-    );
-    // returnTree
-    // TODO fix returnTree???
-    return libTreeDict;
+    // update our local variable...
+    this.jsonTree = fileList["root"];
+    // return the whole thing just in case
+    return fileList["root"];
   }
 };

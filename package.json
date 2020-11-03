@@ -8,6 +8,7 @@
   "dependencies": {
     "bootstrap": "^4.5.2",
     "directory-tree": "^2.2.4",
+    "electron-json-storage": "^4.2.0",
     "glob": "^7.1.6",
     "jquery": "^3.5.1",
     "jquery-ui": "^1.12.1",

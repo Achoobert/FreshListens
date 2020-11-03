@@ -1,5 +1,113 @@
 // Create tables IF NOT EXISTS
 // users library history location directories
+const os = require("os");
+const storage = require("electron-json-storage");
+
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+// Summary: Get the default data path
+// Returns: String - default data path
+const defaultDataPath = storage.getDefaultDataPath();
+
+// The default value will be used if the directory is undefined.
+// Summary: Set current data path
+storage.setDataPath(os.tmpdir());
+
+// Returns the current data path. It defaults to a directory called "storage"
+// inside Electron's userData path.
+// Kind: static method of storage
+// Summary: Get current user data path
+// Returns: String - the user data path
+const dataPath = storage.getDataPath();
+console.log(dataPath);
+
+// Kind: static method of storage
+// Summary: Read user data
+//const storage = require("electron-json-storage");
+
+storage.get("foobar", function (error, data) {
+  if (error) throw error;
+
+  console.log(data);
+});
+
+// This function returns an object with the data of all the passed keys.
+// If one of the keys doesn't exist, an empty object is returned for it.
+// Kind: static method of storage
+// Summary: Read many user data keys
+//const storage = require("electron-json-storage");
+
+storage.getMany(["foobar", "barbaz"], function (error, data) {
+  if (error) throw error;
+
+  console.log(data.foobar);
+  console.log(data.barbaz);
+});
+// storage.getAll([options], callback)
+// This function returns an empty object if there is no data to be read.
+//const storage = require("electron-json-storage");
+
+storage.getAll(function (error, data) {
+  if (error) throw error;
+
+  console.log(data);
+});
+
+// storage.set(key, json, [options], callback)
+// Kind: static method of storage
+// Summary: Write user data
+//const storage = require("electron-json-storage");
+
+storage.set("foobar", { foo: "bar" }, function (error) {
+  if (error) throw error;
+  //console.log(`Adding ${foo} to bar`);
+});
+
+// storage.has(key, [options], callback)
+// Kind: static method of storage
+// Summary: Check if a key exists
+//const storage = require("electron-json-storage");
+
+storage.has("foobar", function (error, hasKey) {
+  if (error) throw error;
+
+  if (hasKey) {
+    console.log("There is data stored as `foobar`");
+  }
+});
+
+storage.has("foobar1337", function (error, hasKey) {
+  if (error) throw error;
+
+  if (hasKey) {
+    console.log("There is nodata stored as `foobar1337`");
+  }
+});
+
+// storage.keys([options], callback)
+// Kind: static method of storage
+// Summary: Get the list of saved keys
+//const storage = require("electron-json-storage");
+
+storage.keys(function (error, keys) {
+  if (error) throw error;
+
+  for (var key of keys) {
+    console.log("There is a key called: " + key);
+  }
+});
+
+//storage.remove(key, [options], callback)
+//Notice this function does nothing, nor throws any error if the key doesn't exist.
+//Summary: Remove a key
+//const storage = require("electron-json-storage");
+
+storage.remove("foobar1", function (error) {
+  if (error) throw error;
+});
+
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
 var dict = {
   one: [15, 4.5],
@@ -67,7 +175,7 @@ module.exports = class Client {
     //this.user = user;
     //user.test();
     //
-    const library = new libraryLogic();
+    const library = new libraryLogic(storage);
     this.library = library;
     this.jsonTree = library.jsonTree;
   }
