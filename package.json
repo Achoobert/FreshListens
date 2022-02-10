@@ -12,7 +12,7 @@
     "jquery-ui": "^1.12.1",
     "jquery-ui-dist": "^1.12.1",
     "jstree": "^3.3.10",
-    "node-sass": "^4.14.1",
+    "node-sass": "^7.0.0",
     "popper.js": "^1.14.4",
     "zeromq": "^6.0.0-beta.6",
     "zerorpc": "git+https://github.com/0rpc/zerorpc-node.git"
