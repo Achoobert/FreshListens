@@ -18,7 +18,7 @@
     "zerorpc": "git+https://github.com/0rpc/zerorpc-node.git"
   },
   "devDependencies": {
-    "electron": "^7.2.4",
+    "electron": "^15.5.5",
     "electron-packager": "^12.1.0"
   },
   "description": "Allow a single PC to admin files for different listeners",
