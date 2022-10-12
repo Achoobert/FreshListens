@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "electron": "^7.2.4",
-    "electron-packager": "^12.1.0"
+    "electron-packager": "^16.0.0"
   },
   "description": "Allow a single PC to admin files for different listeners",
   "main": "app.js",
